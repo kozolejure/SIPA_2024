@@ -10,8 +10,21 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - login-data:/data/db
+
+  data:
+    image: mongo:5.0.25
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    ports:
+      - "27018:27017"
+    volumes:
+      - user-data:/data/db
 
 volumes:
-  mongo-data:
+  login-data:
+    driver: local
+  user-data:
     driver: local
