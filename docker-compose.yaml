@@ -28,7 +28,7 @@ services:
     image: jurek01/auth
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongodb://admin:admin@authdb:27017/users?authSource=admin
+      MONGODB_URI: mongodb://admin:admin@authdb:27017/users?authSource=admin
     ports:
       - "3001:3000"
 
@@ -38,7 +38,7 @@ services:
     image: jurek01/user_service
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongodb://admin:admin@data:27017/userservice?authSource=admin
+      MONGODB_URI: mongodb://admin:admin@data:27017/userservice?authSource=admin
     ports:
       - "3002:3000"
 
@@ -47,7 +47,7 @@ services:
     image: jurek01/expire_service
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongodb://admin:admin@authdb:27017/userservice?authSource=admin
+      MONGODB_URI: mongodb://admin:admin@authdb:27017/userservice?authSource=admin
     ports:
       - "3003:3000"
 
