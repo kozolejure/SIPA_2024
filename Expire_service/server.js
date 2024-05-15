@@ -8,8 +8,8 @@ const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
-
-mongoose.connect('mongodb://admin:admin@localhost:27018/userservice?authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true })
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:admin@localhost:27018/userservice?authSource=admin';
+mongoose.connect('mongodb://admin:admin@data:27017/userservice?authSource=admin', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected...'))
   .catch(err => console.log(err));
 
