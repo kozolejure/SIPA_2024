@@ -1,0 +1,49 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Auth service
+        working-directory: ./Auth
+        run: |
+          docker build -t jurek01/auth:latest .
+          docker push jurek01/auth:latest
+
+      - name: Build and push User service
+        working-directory: ./User_service
+        run: |
+          docker build -t jurek01/user_service:latest .
+          docker push jurek01/user_service:latest
+
+      - name: Build and push Expire service
+        working-directory: ./Expire_service
+        run: |
+          docker build -t jurek01/expire_service:latest .
+          docker push jurek01/expire_service:latest

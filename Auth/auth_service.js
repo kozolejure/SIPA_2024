@@ -65,7 +65,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: 'http://localhost:3001',
         description: 'Development server',
       },
     ],
@@ -97,6 +97,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *     responses:
  *       201:
  *         description: Uporabnik uspešno ustvarjen
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 userId:
+ *                   type: string
  *       500:
  *         description: Napaka strežnika
  */
@@ -111,8 +120,8 @@ app.post('/register', async (req, res) => {
       email,
     });
 
-    await newUser.save();
-    res.status(201).json({ message: 'User created successfully' });
+    const savedUser = await newUser.save();
+    res.status(201).json({ message: 'User created successfully', userId: savedUser._id });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

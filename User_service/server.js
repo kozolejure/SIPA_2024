@@ -21,6 +21,12 @@ const options = {
       title: 'User Service API',
       version: '1.0.0',
     },
+    servers: [
+      {
+        url: 'http://localhost:3002',
+        description: 'Development server',
+      },
+    ],
   },
   apis: ['./routes/*.js'], // Files containing Swagger annotations
 };

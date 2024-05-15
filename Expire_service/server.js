@@ -21,6 +21,12 @@ const options = {
       title: 'User Service Expiry API',
       version: '1.0.0',
     },
+    servers: [
+      {
+        url: 'http://localhost:3003',
+        description: 'Development server',
+      },
+    ],
   },
   apis: ['./routes/*.js'], // Files containing Swagger annotations
 };

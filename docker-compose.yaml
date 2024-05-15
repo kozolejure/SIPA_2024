@@ -23,6 +23,34 @@ services:
     volumes:
       - user-data:/data/db
 
+  ### Auth service ###
+  auth_service:
+    image: jurek01/auth
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://admin:admin@authdb:27017/users?authSource=admin
+    ports:
+      - "3001:3000"
+
+  ### User service ###
+
+  user_service:
+    image: jurek01/user_service
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://admin:admin@data:27017/userservice?authSource=admin
+    ports:
+      - "3002:3000"
+
+  ### User service ###
+  expire_service:
+    image: jurek01/expire_service
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://admin:admin@authdb:27017/userservice?authSource=admin
+    ports:
+      - "3003:3000"
+
 volumes:
   login-data:
     driver: local
