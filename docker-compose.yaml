@@ -47,7 +47,7 @@ services:
     image: jurek01/expire_service
     restart: unless-stopped
     environment:
-      MONGODB_URI: mongodb://admin:admin@authdb:27017/userservice?authSource=admin
+      MONGODB_URI: mongodb://admin:admin@data:27017/userservice?authSource=admin
     ports:
       - "3003:3000"
 
