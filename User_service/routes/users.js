@@ -235,21 +235,25 @@ router.delete('/users/:id/items/:itemId', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
+      console.error('User not found:', req.params.id);
       return res.status(404).send('User not found');
     }
 
     const item = user.items.id(req.params.itemId);
     if (!item) {
+      console.error('Item not found:', req.params.itemId);
       return res.status(404).send('Item not found');
     }
 
-    item.remove();
+    user.items.pull(req.params.itemId);
     await user.save();
-    res.status(200).send(user);
+    res.status(200).send({ message: 'Item deleted successfully', user });
   } catch (err) {
-    res.status(500).send(err);
+    console.error('Error deleting item:', err);
+    res.status(500).send({ message: 'Internal server error', error: err.message });
   }
 });
+
 
 
 /**
