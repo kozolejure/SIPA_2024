@@ -68,6 +68,7 @@ function RegisterForm() {
                         </span>
                     </div>
                 </div>
+
                 {passwordError && <div className={styles.errorText}>Passwords do not match!</div>}
                 <button type="submit" className={styles.button}>Register</button>
             </form>

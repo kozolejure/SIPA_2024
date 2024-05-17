@@ -13,7 +13,6 @@ function LoginForm() {
         console.log('Login with', email, password);
     };
 
-
     return (
         <div className={styles.container}>
             <form onSubmit={handleSubmit} className={styles.form}>
