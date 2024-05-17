@@ -5,7 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
-const port = 3000;
+const port = 3002;
 
 app.use(bodyParser.json());
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:admin@localhost:27018/userservice?authSource=admin';
@@ -24,8 +24,9 @@ const options = {
     servers: [
       {
         url: 'http://localhost:3002',
-        description: 'Development server',
+        description: 'Docker',
       },
+      
     ],
   },
   apis: ['./routes/*.js'], // Files containing Swagger annotations
