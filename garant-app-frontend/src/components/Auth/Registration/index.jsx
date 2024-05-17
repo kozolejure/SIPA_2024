@@ -1,9 +1,11 @@
 // src/components/Auth/RegisterForm/index.jsx
 import React, { useState } from 'react';
+import axios from 'axios';
 import styles from '../styles.module.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function RegisterForm() {
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,14 +19,35 @@ function RegisterForm() {
             setPasswordError(true);
             return;
         }
-        // TODO: Logika za registracijo
-        console.log('Register with', email, password);
+        else {
+            // TODO: Logika za registracijo
+            console.log('Register with', email, password);
+
+            axios.post('http://localhost:3001/register', {
+                username: username,
+                email: email,
+                password: password
+            }).then((response) => {
+                console.log(response.data);
+            }).catch((error) => {
+                console.error(error);
+            });
+        }
     };
 
     return (
         <div className={styles.container}>
             <form onSubmit={handleSubmit} className={styles.form}>
                 <h2 className={styles.title}>Register</h2>
+                <div className={styles.inputGroup}>
+                    <label>Username</label>
+                    <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                </div>
                 <div className={styles.inputGroup}>
                     <label>Email</label>
                     <input
