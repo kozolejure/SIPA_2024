@@ -43,6 +43,7 @@ function LoginForm() {
                         </span>
                     </div>
                 </div>
+
                 <br />
                 <button type="submit" className={styles.button}>Log In</button>
             </form>
