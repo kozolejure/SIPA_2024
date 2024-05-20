@@ -40,7 +40,7 @@ services:
     environment:
       MONGODB_URI: mongodb://admin:admin@data:27017/userservice?authSource=admin
     ports:
-      - "3002:3000"
+      - "3002:3002"
 
   ### User service ###
   expire_service:
@@ -49,7 +49,7 @@ services:
     environment:
       MONGODB_URI: mongodb://admin:admin@data:27017/userservice?authSource=admin
     ports:
-      - "3003:3000"
+      - "3003:3003"
 
 volumes:
   login-data:
