@@ -1,0 +1,98 @@
+/* src/components/Auth/LoginForm/styles.module.css */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  padding: 25px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.title {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+label {
+  text-align: left;
+}
+
+p{
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.inputGroup label {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.inputGroup input {
+  height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.passwordInput {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.passwordInput input {
+  flex-grow: 1;
+}
+
+.eyeIcon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+}
+
+.button {
+  padding: 12px;
+  width: 100%;
+  min-height: 50px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #0056b3;
+  }
+
+.errorInput {
+  border: 2px solid red;
+}
+
+.errorText {
+  color: red;
+  margin: 10px;
+  text-align: center; 
+}
+
+  
