@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import styles from '../styles.module.css';
+
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import ClipLoader from "react-spinners/ClipLoader";
 
@@ -40,8 +41,14 @@ function RegisterForm() {
 
                 setLoading(false);
 
-                console.log(response.data);
-                notify('success', 'Registration successful!');
+                if (response.status === 200) {
+                    console.log(response.data);
+                    notify('success', 'Registration successful!');
+                }
+                else {
+                    console.log(response.data);
+                    notify('error', 'Registration failed!');
+                }
             } catch (error) {
                 setLoading(false);
 
