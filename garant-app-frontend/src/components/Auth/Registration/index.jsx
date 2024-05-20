@@ -22,12 +22,13 @@ function RegisterForm() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setLoading(true);
+
         if (password !== confirmPassword) {
             setPasswordError(true);
             return;
         }
         else {
-            setLoading(true);
             console.log('Register with', email, password);
 
             try {
