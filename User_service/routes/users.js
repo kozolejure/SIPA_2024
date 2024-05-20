@@ -180,14 +180,22 @@ router.get('/users/:id/items', async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.post('/users/:id/items', upload.array('images', 2), async (req, res) => {
+router.post('/users/:id/items', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
     const item = {
-      ...req.body,
-      productImage: req.files[0]?.path,
-      receiptImage: req.files[1]?.path,
+      name: req.body.name,
+      manufacturer: req.body.manufacturer,
+      warrantyExpiryDate: req.body.warrantyExpiryDate,
+      productImage: req.body.productImage,
+      receiptImage: req.body.receiptImage,
+      notes: req.body.notes
     };
+
     user.items.push(item);
     await user.save();
     res.status(201).send(user);
@@ -218,19 +226,35 @@ router.post('/users/:id/items', upload.array('images', 2), async (req, res) => {
  *     responses:
  *       200:
  *         description: Item deleted successfully
+ *       404:
+ *         description: User or item not found
  *       500:
  *         description: Internal server error
  */
 router.delete('/users/:id/items/:itemId', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    user.items.id(req.params.itemId).remove();
+    if (!user) {
+      console.error('User not found:', req.params.id);
+      return res.status(404).send('User not found');
+    }
+
+    const item = user.items.id(req.params.itemId);
+    if (!item) {
+      console.error('Item not found:', req.params.itemId);
+      return res.status(404).send('Item not found');
+    }
+
+    user.items.pull(req.params.itemId);
     await user.save();
-    res.status(200).send(user);
+    res.status(200).send({ message: 'Item deleted successfully', user });
   } catch (err) {
-    res.status(500).send(err);
+    console.error('Error deleting item:', err);
+    res.status(500).send({ message: 'Internal server error', error: err.message });
   }
 });
+
+
 
 /**
  * @swagger
@@ -317,8 +341,8 @@ router.put('/users/:id/items/:itemId', upload.array('images', 2), async (req, re
     item.name = req.body.name || item.name;
     item.manufacturer = req.body.manufacturer || item.manufacturer;
     item.warrantyExpiryDate = req.body.warrantyExpiryDate || item.warrantyExpiryDate;
-    item.productImage = req.files[0]?.path || item.productImage;
-    item.receiptImage = req.files[1]?.path || item.receiptImage;
+    item.productImage = req.body.productImage
+    item.receiptImage = req.body.receiptImage
     item.notes = req.body.notes || item.notes;
 
     await user.save();
