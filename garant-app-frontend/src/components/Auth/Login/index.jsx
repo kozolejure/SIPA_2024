@@ -8,6 +8,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 import NotificationPortal from '../../NotificationPortal.js'
 import useNotification from "../../../hooks/useNotification.js";
+import { saveTokens } from '../../../utils/tokensIndexedDB.js';
 
 function LoginForm() {
     const [loading, setLoading] = useState(false);
@@ -30,10 +31,12 @@ function LoginForm() {
                 password: password
             });
 
+            saveTokens(response.data.token, response.data.refreshToken)
+
             setLoading(false);
 
             console.log(response.data);
-            navigate('/app');
+            navigate('/');
         } catch (error) {
             setLoading(false);
             console.error(error);

@@ -1,6 +1,7 @@
 // Filename - App.js
 
-import React, { Component } from "react";
+import React from "react";
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,33 +14,16 @@ import HomeScreen from "./components/Home/index.tsx";
 
 import "./App.css";
 
-class App extends Component {
-  render() {
-    return (
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route
-              path="/"
-              element={<Login />}
-            ></Route>
-            <Route
-              path="/login"
-              element={<Login />}>
-            </Route>
-            <Route
-              path="/app"
-              element={<HomeScreen />}
-            ></Route>
-            <Route
-              path="/registration"
-              element={<Registration />}
-            ></Route>
-          </Routes>
-        </div>
-      </Router>
-    );
-  }
-}
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/registration" element={<Registration />} />
+        <Route path="/" element={<HomeScreen />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;
