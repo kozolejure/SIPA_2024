@@ -3,8 +3,13 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import styles from '../styles.module.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import ClipLoader from "react-spinners/ClipLoader";
+
+import NotificationPortal from '../../NotificationPortal.js'
+import useNotification from "../../../hooks/useNotification.js";
 
 function RegisterForm() {
+    const [loading, setLoading] = useState(false);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -13,30 +18,41 @@ function RegisterForm() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
 
-    const handleSubmit = (event) => {
+    const notify = useNotification();
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
         if (password !== confirmPassword) {
             setPasswordError(true);
             return;
         }
         else {
-            // TODO: Logika za registracijo
+            setLoading(true);
             console.log('Register with', email, password);
 
-            axios.post('http://localhost:3001/register', {
-                username: username,
-                email: email,
-                password: password
-            }).then((response) => {
+            try {
+                const response = await axios.post('http://localhost:3001/register', {
+                    username: username,
+                    email: email,
+                    password: password
+                });
+
+                setLoading(false);
+
                 console.log(response.data);
-            }).catch((error) => {
+                notify('success', 'Registration successful!');
+            } catch (error) {
+                setLoading(false);
+
                 console.error(error);
-            });
+                notify('error', 'Registration failed!');
+            }
         }
     };
 
     return (
         <div className={styles.container}>
+            <NotificationPortal />
             <form onSubmit={handleSubmit} className={styles.form}>
                 <h2 className={styles.title}>Register</h2>
                 <div className={styles.inputGroup}>
@@ -93,7 +109,9 @@ function RegisterForm() {
                 </div>
 
                 {passwordError && <div className={styles.errorText}>Passwords do not match!</div>}
-                <button type="submit" className={styles.button}>Register</button>
+                <button type="submit" className={styles.button}>
+                    {loading ? <ClipLoader color="#ffffff" loading={loading} /> : "Register"}
+                </button>
             </form>
         </div>
     );
