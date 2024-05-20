@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import styles from '../styles.module.css';
+import { useNavigate } from 'react-router-dom';
 
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import ClipLoader from "react-spinners/ClipLoader";
@@ -20,6 +21,7 @@ function RegisterForm() {
     const [passwordError, setPasswordError] = useState(false);
 
     const notify = useNotification();
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -41,14 +43,9 @@ function RegisterForm() {
 
                 setLoading(false);
 
-                if (response.status === 200) {
-                    console.log(response.data);
-                    notify('success', 'Registration successful!');
-                }
-                else {
-                    console.log(response.data);
-                    notify('error', 'Registration failed!');
-                }
+                console.log(response.data);
+                notify('success', 'Registration successful!');
+                navigate('/login')
             } catch (error) {
                 setLoading(false);
 
@@ -62,7 +59,7 @@ function RegisterForm() {
         <div className={styles.container}>
             <NotificationPortal />
             <form onSubmit={handleSubmit} className={styles.form}>
-                <h2 className={styles.title}>Register</h2>
+                <h2 className={styles.title}>Registration</h2>
                 <div className={styles.inputGroup}>
                     <label>Username</label>
                     <input
@@ -107,6 +104,7 @@ function RegisterForm() {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                         />
+
                         <span
                             className={styles.eyeIcon}
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}

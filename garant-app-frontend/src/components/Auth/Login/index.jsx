@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../styles.module.css';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 import ClipLoader from "react-spinners/ClipLoader";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -15,6 +16,7 @@ function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
 
     const notify = useNotification();
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -30,14 +32,8 @@ function LoginForm() {
 
             setLoading(false);
 
-            if (response.status === 200) {
-                console.log(response.data);
-                notify('success', 'Login successful!');
-            }
-            else {
-                console.log(response.data);
-                notify('error', 'Login failed!');
-            }
+            console.log(response.data);
+            navigate('/app');
         } catch (error) {
             setLoading(false);
             console.error(error);
@@ -51,9 +47,9 @@ function LoginForm() {
             <form onSubmit={handleSubmit} className={styles.form}>
                 <h2 className={styles.title}>Login</h2>
                 <div className={styles.inputGroup}>
-                    <label>username</label>
+                    <label>Username</label>
                     <input
-                        type="username"
+                        type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
@@ -75,6 +71,12 @@ function LoginForm() {
                             {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </span>
                     </div>
+                </div>
+
+                <div className={styles.createAccount}>
+                    <span>Don't have an account?</span>
+                    &nbsp;
+                    <a href="/registration">Create Account</a>
                 </div>
 
                 <br />

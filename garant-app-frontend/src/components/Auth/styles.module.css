@@ -30,6 +30,10 @@
   margin-bottom: 20px;
 }
 
+label {
+  text-align: left;
+}
+
 .inputGroup label {
   font-size: 14px;
   color: #333;
