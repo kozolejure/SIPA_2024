@@ -6,11 +6,20 @@ import { useAuth } from "../../../context/AuthContext"; // Uvozite useAuth
 import stylesNac from '../styles.module.css';
 import styles from './styles.module.css';
 
+interface Product {
+    _id: string;
+    name: string;
+    Manufacturer: string;
+    warrantyExpiryDate: string;
+    productImage: string;
+    Notes: string;
+}
+
 const ProductDetails = () => {
     const { user, logout  } = useAuth();  // Uporabite kontekst za uporabnika in odjavo
     const { id } = useParams();
     const navigate = useNavigate();
-    const [product, setProduct] = useState(null);
+    const [product, setProduct] = useState<Product | null>(null);
     console.log('ProductDetails id:', id);
 
     useEffect(() => {
@@ -22,7 +31,7 @@ const ProductDetails = () => {
             try {
                 const products = JSON.parse(localStorage.getItem('products') ?? '') || [];
                 console.log('Products from local storage:', products);
-                const foundProduct = products.find(p => p._id === id);
+                const foundProduct = products.find((p: Product) => p._id === id);
                 console.log('Found product:', foundProduct);
 
                 setProduct(foundProduct);
@@ -47,13 +56,14 @@ const ProductDetails = () => {
                 <button onClick={logout}>Odjava</button>
             </div>
         <div className={styles.productDetails}>
-            <h2 className={styles.title}>{product.name}</h2>
+            <h2 className={styles.title}>{(product as { name: string }).name}</h2>
             <img src={`http://localhost:3002/${product.productImage}`} alt={product.name} className={styles.image} />
             <p className= {styles.productDetails}><strong>Manufacturer:</strong> {product.Manufacturer}</p>
             <p className= {styles.productDetails}><strong>Warranty Expiry Date:</strong> {new Date(product.warrantyExpiryDate).toLocaleDateString()}</p>
             <p className= {styles.productDetails}><strong>Notes:</strong> {product.Notes}</p>
             <div>
-                <button onClick={() => navigate(`/edit-product/${product._id}`)} className={styles.EditButton}>Uredi izdelek</button>
+                
+                <button onClick={null} className={styles.EditButton}>Uredi izdelek</button>
                 <button onClick={null} className={styles.DownloadButton}>Prenesi račun</button>
 
             </div>

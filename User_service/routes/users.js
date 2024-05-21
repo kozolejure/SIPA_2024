@@ -2,7 +2,19 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+
+
+// Konfiguracija multer za shranjevanje datotek v mapo "uploads"
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 /**
  * @swagger
@@ -159,28 +171,48 @@ router.get('/users/:id/items', async (req, res) => {
  * @swagger
  * /users/{id}/items:
  *   post:
- *     summary: Add an item to a user
- *     tags: [Items]
+ *     summary: Dodaj nov predmet uporabniku
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: User ID
+ *         description: ID uporabnika
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Item'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               manufacturer:
+ *                 type: string
+ *               warrantyExpiryDate:
+ *                 type: string
+ *                 format: date
+ *               productImage:
+ *                 type: string
+ *                 format: binary
+ *               receiptImage:
+ *                 type: string
+ *                 format: binary
+ *               notes:
+ *                 type: string
  *     responses:
  *       201:
- *         description: Item added successfully
+ *         description: Predmet uspešno dodan
+ *       404:
+ *         description: Uporabnik ni najden
  *       500:
- *         description: Internal server error
+ *         description: Notranja napaka strežnika
  */
-router.post('/users/:id/items', async (req, res) => {
+router.post('/users/:id/items', upload.fields([
+  { name: 'productImage', maxCount: 1 },
+  { name: 'receiptImage', maxCount: 1 }
+]), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -191,8 +223,8 @@ router.post('/users/:id/items', async (req, res) => {
       name: req.body.name,
       manufacturer: req.body.manufacturer,
       warrantyExpiryDate: req.body.warrantyExpiryDate,
-      productImage: req.body.productImage,
-      receiptImage: req.body.receiptImage,
+      productImage: req.files['productImage'] ? req.files['productImage'][0].path : null,
+      receiptImage: req.files['receiptImage'] ? req.files['receiptImage'][0].path : null,
       notes: req.body.notes
     };
 
