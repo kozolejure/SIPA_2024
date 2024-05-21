@@ -34,11 +34,15 @@ const AddProduct = () => {
         formData.append('notes', notes);
 
         try {
-            await axios.post('http://localhost:3002/users/' + user.id + '/items', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await axios.post('http://localhost:3002/users/' + user.id + '/items', {
+                name: name,
+                manufacturer: manufacturer,
+                warrantyExpiryDate: warrantyExpiryDate,
+                productImage: productImage,
+                receiptImage: receiptImage,
+                notes: notes
+            }
+            );
             navigate('/');
         } catch (error) {
             console.error('Failed to add product:', error);
