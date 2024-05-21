@@ -33,10 +33,10 @@ function LoginForm() {
 
             saveTokens(response.data.token, response.data.refreshToken)
 
-            setLoading(false);
-
-            const isFirstTimeLogin = checkIfIsFirstTimeLogin(response.data.user.id);
+            const isFirstTimeLogin = await checkIfIsFirstTimeLogin(response.data.user.id);
             console.log("isFirstTimeLogin: " + isFirstTimeLogin);
+
+            setLoading(false);
 
             if (isFirstTimeLogin) {
                 navigate('/first-login');
@@ -55,13 +55,16 @@ function LoginForm() {
 
     const checkIfIsFirstTimeLogin = async (userId) => {
         try {
-            console.log("Checking if is first time login for user: " + userId)
-            const response = await axios.get('http://localhost:3002/users/' + userId)
-                .then(response => console.log("Response from checking user's first-time login status:", response.status))
-                .catch(error => error);
+            console.log("Checking if is first time login for user:", userId);
+            const response = await axios.get(`http://localhost:3002/users/${userId}`);
+            console.log("Response status:", response.status);  // This will show the actual response status code
             return response.status === 404;
         } catch (error) {
             console.error("Error checking user's first-time login status:", error);
+            if (error.response) {
+                console.log("Error response status:", error.response.status);  // This will show the error status code if there is an error response
+                return error.response.status === 404;  // Handle specific status code on error
+            }
             return false;
         }
     }
