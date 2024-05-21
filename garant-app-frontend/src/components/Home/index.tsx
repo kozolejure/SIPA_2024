@@ -1,12 +1,17 @@
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { deleteTokens, getTokens, saveTokens } from '../../utils/tokensIndexedDB';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+import ProductCard from './ProductCard/index.tsx';
+import styles from './styles.module.css';
+
 function HomeScreen() {
+    const [user, setUser] = useState({});
     const navigate = useNavigate();
+    const [products, setProducts] = useState([]);
 
     useEffect(() => {
         console.log("getting tokens");
@@ -14,7 +19,13 @@ function HomeScreen() {
             getTokens().then(async (tokens) => {
                 if (tokens.jwtToken) {
                     console.log("tokens", tokens);
+
                     const decodedToken = jwtDecode(tokens.jwtToken);
+
+                    setUser(decodedToken);
+
+                    console.log("decodedTokenssssss: ", decodedToken.id);
+
                     const isExpired = decodedToken.exp! * 1000 < Date.now();
 
                     if (isExpired) {
@@ -48,12 +59,42 @@ function HomeScreen() {
             console.log("erro getting tokens", error);
             navigate('/login');
         }
-    });
+
+        const fetchData = async () => {
+            try {
+                console.log("fetching data with user id: ", user.id);
+                const response = await axios.get("http://localhost:3002/users/" + user.id + "/items");
+                setProducts(response.data);
+                console.log("fetched data", response.data)
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchData();
+    }, [user.id]);
+
+    const logout = () => {
+        deleteTokens();
+        navigate('/login');
+    };
 
     return (
         <div>
-            <h1>Home screen</h1>
-        </div>
+            <div className={styles.nav}>
+                <label>Home</label>
+                <button onClick={() => navigate('/add-product')}>Dodaj izdelek</button>
+                <button onClick={() => { logout() }}>Odjava</button>
+            </div>
+
+            <div className={styles.container}>
+                {
+                    products.map(product => (
+                        <ProductCard key={product} product={product} onViewDetails={null} />
+                    ))
+                }
+            </div >
+        </div >
     );
 }
 
