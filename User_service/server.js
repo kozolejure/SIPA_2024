@@ -6,7 +6,7 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const cors = require('cors');
 const app = express();
 const port = 3002;
-
+app.use(cors());
 app.use(bodyParser.json());
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:admin@localhost:27018/userservice?authSource=admin';
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -37,5 +37,4 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 // Import routes
 const userRoutes = require('./routes/users');
 app.use('/', userRoutes); // <- spremenili smo pot, da ne vključuje '/api'
-app.use(cors());
 app.listen(port, () => console.log(`Server running on port ${port}`));
