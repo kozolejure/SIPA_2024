@@ -32,11 +32,14 @@ const options = {
   apis: ['./routes/*.js'], // Files containing Swagger annotations
 };
 
+app.use(cors());
+
 const specs = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Import routes
 const userRoutes = require('./routes/users');
 app.use('/', userRoutes); // <- spremenili smo pot, da ne vključuje '/api'
+
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
