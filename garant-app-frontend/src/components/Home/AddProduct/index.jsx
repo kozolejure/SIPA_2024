@@ -1,8 +1,9 @@
 // src/components/AddProduct.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';  // Uporabite že obstoječi CSS modul ali ustvarite novega
+import { useAuth } from '../../../context/AuthContext';
 
 const AddProduct = () => {
     const [name, setName] = useState('');
@@ -12,6 +13,14 @@ const AddProduct = () => {
     const [receiptImageBase64, setReceiptImageBase64] = useState('');
     const [notes, setNotes] = useState('');
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+    }, []);
 
     const handleProductImageChange = (event) => {
         const file = event.target.files[0];
@@ -45,15 +54,19 @@ const AddProduct = () => {
         formData.append('receiptImage', receiptImageBase64);
         formData.append('notes', notes);
 
+        console.log('Product data:', JSON.stringify(formData, null, 2));
+
         try {
-            const response = await axios.post('http://localhost:3002/products', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            const response = await axios.post('http://localhost:3002/' + user.id + '/items', {
+                name: name,
+                manufacturer: manufacturer,
+                warrantyExpiryDate: warrantyExpiryDate,
+                productImage: productImageBase64,
+                receiptImage: receiptImageBase64,
+                notes: notes
             });
 
             console.log('Product adding response:', response.data);
-
             navigate('/'); // Navigirajte nazaj na domačo stran po uspešnem dodajanju
         } catch (error) {
             console.error('Failed to add product:', error);

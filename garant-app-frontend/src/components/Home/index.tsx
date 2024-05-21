@@ -28,7 +28,7 @@ function HomeScreen() {
         };
 
         fetchData();
-    }, [user, navigate]); // Odvisnost od user, da se ponovno naloži, ko se user spremeni
+    }, [user, navigate]);
 
     return (
         <div>
@@ -37,6 +37,7 @@ function HomeScreen() {
                 <button onClick={() => navigate('/add-product')}>Dodaj izdelek</button>
                 <button onClick={logout}>Odjava</button>
             </div>
+            {products.length === 0 && <div className={styles.container}>Ni dodanih izdelkov</div>}
             <div className={styles.container}>
                 {products.map(product => (
                     <ProductCard key={product.id} product={product} onViewDetails={null} />
