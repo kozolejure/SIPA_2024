@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
-
+const cors = require('cors');
 const app = express();
 const port = 3002;
 
@@ -32,14 +32,10 @@ const options = {
   apis: ['./routes/*.js'], // Files containing Swagger annotations
 };
 
-app.use(cors());
-
 const specs = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-
 // Import routes
 const userRoutes = require('./routes/users');
 app.use('/', userRoutes); // <- spremenili smo pot, da ne vključuje '/api'
-
-
+app.use(cors());
 app.listen(port, () => console.log(`Server running on port ${port}`));
