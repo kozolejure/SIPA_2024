@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 const ProductCard = ({ product, onViewDetails }) => {
     return (
         <div className={styles.card}>
-            <img src={product.imageUrl} alt={product.name} className={styles.image} />
+            <img src={`http://localhost:3002/${product.productImage}`} className={styles.image} />
             <div className={styles.info}>
                 <h3 className={styles.title}>{product.name}</h3>
                 <p className={styles.description}>{product.description}</p>

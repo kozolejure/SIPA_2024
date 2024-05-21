@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { useAuth } from '../../../context/AuthContext';
 
-
 const AddProduct = () => {
     const [name, setName] = useState('');
     const [manufacturer, setManufacturer] = useState('');
@@ -21,7 +20,7 @@ const AddProduct = () => {
             navigate('/login');
             return;
         }
-    }, []);
+    }, [user, navigate]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -34,15 +33,11 @@ const AddProduct = () => {
         formData.append('notes', notes);
 
         try {
-            await axios.post('http://localhost:3002/users/' + user.id + '/items', {
-                name: name,
-                manufacturer: manufacturer,
-                warrantyExpiryDate: warrantyExpiryDate,
-                productImage: productImage,
-                receiptImage: receiptImage,
-                notes: notes
-            }
-            );
+            await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             navigate('/');
         } catch (error) {
             console.error('Failed to add product:', error);
