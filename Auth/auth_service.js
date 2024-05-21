@@ -8,7 +8,6 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-
 // Povezava z MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:admin@localhost:27017/users?authSource=admin';
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -229,7 +228,6 @@ app.post('/token', (req, res) => {
   });
 });
 
-app.use(cors());
 
 // Določitev porta in zagon strežnika
 const PORT = process.env.PORT || 3000;
