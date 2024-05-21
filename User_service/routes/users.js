@@ -2,18 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const multer = require('multer');
-
-// Nastavitev multerja za shranjevanje slik
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
-
-const upload = multer({ storage: storage });
+const upload = multer({ dest: 'uploads/' });
 
 /**
  * @swagger
@@ -86,7 +75,7 @@ router.post('/users', async (req, res) => {
     await user.save();
     res.status(201).send(user);
   } catch (err) {
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+    res.status(500).send(err);
   }
 });
 
@@ -119,11 +108,11 @@ router.get('/users/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send({ message: 'User not found' });
+      return res.status(404).send('User not found');
     }
     res.status(200).send(user);
   } catch (err) {
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+    res.status(500).send(err);
   }
 });
 
@@ -158,11 +147,11 @@ router.get('/users/:id/items', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send({ message: 'User not found' });
+      return res.status(404).send('User not found');
     }
     res.status(200).send(user.items);
   } catch (err) {
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+    res.status(500).send(err);
   }
 });
 
@@ -185,44 +174,25 @@ router.get('/users/:id/items', async (req, res) => {
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Item'
- *       multipart/form-data:
- *         schema:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *             manufacturer:
- *               type: string
- *             warrantyExpiryDate:
- *               type: string
- *               format: date
- *             productImage:
- *               type: string
- *               format: binary
- *             receiptImage:
- *               type: string
- *               format: binary
- *             notes:
- *               type: string
  *     responses:
  *       201:
  *         description: Item added successfully
  *       500:
  *         description: Internal server error
  */
-router.post('/users/:id/items', upload.fields([{ name: 'productImage', maxCount: 1 }, { name: 'receiptImage', maxCount: 1 }]), async (req, res) => {
+router.post('/users/:id/items', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send({ message: 'User not found' });
+      return res.status(404).send('User not found');
     }
 
     const item = {
       name: req.body.name,
       manufacturer: req.body.manufacturer,
       warrantyExpiryDate: req.body.warrantyExpiryDate,
-      productImage: req.files['productImage'] ? req.files['productImage'][0].path : null,
-      receiptImage: req.files['receiptImage'] ? req.files['receiptImage'][0].path : null,
+      productImage: req.body.productImage,
+      receiptImage: req.body.receiptImage,
       notes: req.body.notes
     };
 
@@ -230,7 +200,7 @@ router.post('/users/:id/items', upload.fields([{ name: 'productImage', maxCount:
     await user.save();
     res.status(201).send(user);
   } catch (err) {
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+    res.status(500).send(err);
   }
 });
 
@@ -265,21 +235,26 @@ router.delete('/users/:id/items/:itemId', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send({ message: 'User not found' });
+      console.error('User not found:', req.params.id);
+      return res.status(404).send('User not found');
     }
 
     const item = user.items.id(req.params.itemId);
     if (!item) {
-      return res.status(404).send({ message: 'Item not found' });
+      console.error('Item not found:', req.params.itemId);
+      return res.status(404).send('Item not found');
     }
 
     user.items.pull(req.params.itemId);
     await user.save();
     res.status(200).send({ message: 'Item deleted successfully', user });
   } catch (err) {
+    console.error('Error deleting item:', err);
     res.status(500).send({ message: 'Internal server error', error: err.message });
   }
 });
+
+
 
 /**
  * @swagger
@@ -312,13 +287,14 @@ router.put('/users/:id', async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!user) {
-      return res.status(404).send({ message: 'User not found' });
+      return res.status(404).send('User not found');
     }
     res.status(200).send(user);
   } catch (err) {
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+    res.status(500).send(err);
   }
 });
+
 
 /**
  * @swagger
@@ -342,25 +318,9 @@ router.put('/users/:id', async (req, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               manufacturer:
- *                 type: string
- *               warrantyExpiryDate:
- *                 type: string
- *                 format: date
- *               productImage:
- *                 type: string
- *                 format: binary
- *               receiptImage:
- *                 type: string
- *                 format: binary
- *               notes:
- *                 type: string
+ *             $ref: '#/components/schemas/Item'
  *     responses:
  *       200:
  *         description: Item updated successfully
@@ -369,26 +329,26 @@ router.put('/users/:id', async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.put('/users/:id/items/:itemId', upload.fields([{ name: 'productImage', maxCount: 1 }, { name: 'receiptImage', maxCount: 1 }]), async (req, res) => {
+router.put('/users/:id/items/:itemId', upload.array('images', 2), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     const item = user.items.id(req.params.itemId);
     if (!item) {
-      return res.status(404).send({ message: 'Item not found' });
+      return res.status(404).send('Item not found');
     }
 
-    // Posodobi polja elementa
+    // Update item fields
     item.name = req.body.name || item.name;
     item.manufacturer = req.body.manufacturer || item.manufacturer;
     item.warrantyExpiryDate = req.body.warrantyExpiryDate || item.warrantyExpiryDate;
-    item.productImage = req.files['productImage'] ? req.files['productImage'][0].path : item.productImage;
-    item.receiptImage = req.files['receiptImage'] ? req.files['receiptImage'][0].path : item.receiptImage;
+    item.productImage = req.body.productImage
+    item.receiptImage = req.body.receiptImage
     item.notes = req.body.notes || item.notes;
 
     await user.save();
     res.status(200).send(item);
   } catch (err) {
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+    res.status(500).send(err);
   }
 });
 
