@@ -229,6 +229,8 @@ app.post('/token', (req, res) => {
   });
 });
 
+app.use(cors());
+
 // Določitev porta in zagon strežnika
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
