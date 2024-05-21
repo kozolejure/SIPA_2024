@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const cors = require('cors');
 
 const app = express();
 const port = 3003;
@@ -36,5 +37,5 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 const expiryRoutes = require('./routes/expiry');
 app.use('/', expiryRoutes);
-
+app.use(cors());
 app.listen(port, () => console.log(`Server running on port ${port}`));
