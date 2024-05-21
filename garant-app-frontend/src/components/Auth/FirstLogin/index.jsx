@@ -34,17 +34,18 @@ function FirstLogin() {
                 firstName: firstName,
                 lastName: lastName,
                 email: userDecodedJwt.email
-            }
-            );
+            });
 
-            console.log(response);
+            console.log("To je status: " + response.status);
 
             setLoading(false);
 
             if (response.status === 201) {
                 notify('success', 'Data saved successfully!');
+                setTimeout(() => { }, 3000);
                 navigate('/');
             } else {
+                console.error(response);
                 notify('error', 'Data save failed!');
             }
         }

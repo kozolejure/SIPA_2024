@@ -35,9 +35,7 @@ function LoginForm() {
 
             setLoading(false);
 
-            // TODO: fix this to check if is first time login
-            const isFirstTimeLogin = await checkIfIsFirstTimeLogin(response.data.user.id);
-
+            const isFirstTimeLogin = checkIfIsFirstTimeLogin(response.data.user.id);
             console.log("isFirstTimeLogin: " + isFirstTimeLogin);
 
             if (isFirstTimeLogin) {
@@ -58,16 +56,13 @@ function LoginForm() {
     const checkIfIsFirstTimeLogin = async (userId) => {
         try {
             console.log("Checking if is first time login for user: " + userId)
-            const response = await axios.get('http://localhost:3002/users/' + userId);
-
-            if (response.status === 404) {
-                return true;
-            }
-            else if (response.status === 200) {
-                return false;
-            }
+            const response = await axios.get('http://localhost:3002/users/' + userId)
+                .then(response => console.log("Response from checking user's first-time login status:", response.status))
+                .catch(error => error);
+            return response.status === 404;
         } catch (error) {
-            console.error(error);
+            console.error("Error checking user's first-time login status:", error);
+            return false;
         }
     }
 
