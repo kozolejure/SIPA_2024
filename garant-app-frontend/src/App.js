@@ -16,6 +16,7 @@ import HomeScreen from "./components/Home/index.tsx";
 import "./App.css";
 import FirstLogin from "./components/Auth/FirstLogin/index.jsx";
 import AddProduct from "./components/Home/AddProduct/index.jsx";
+import ProductDetails from './components/Home/ViewProductDetails/index.tsx';
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
           <Route path="/first-login" element={<FirstLogin />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/" element={<HomeScreen />} />
+          <Route path="/product-details/:id" element={<ProductDetails />} />
         </Routes>
       </AuthProvider>
     </Router>
