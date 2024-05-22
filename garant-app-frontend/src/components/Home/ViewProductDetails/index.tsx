@@ -5,12 +5,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "../../../context/AuthContext"; // Uvozite useAuth
 import stylesNac from '../styles.module.css';
 import styles from './styles.module.css';
+
 interface Product {
     _id: string;
     name: string;
     Manufacturer: string;
     warrantyExpiryDate: string;
     productImage: string;
+    receiptImage: string;
     Notes: string;
 }
 
@@ -70,6 +72,56 @@ const ProductDetails = () => {
             console.error('Error deleting product:', error);
         }
     };
+    const downloadReceipt = () => {
+        // Preveri, ali ima izdelek račun
+        if (!product?.receiptImage) {
+            console.error('Receipt image not found for product:', product);
+            return;
+        }
+    
+        // Neposredna povezava do slike
+        const receiptUrl = `http://localhost:3002/${product.receiptImage}`;
+    
+        // Ustvari XMLHttpRequest objekt
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', receiptUrl, true);
+        xhr.responseType = 'blob'; // Nastavi odgovor kot binarni podatki
+    
+        // Ko je prenos končan
+        xhr.onload = function() {
+            // Preveri, ali je zahteva uspešna
+            if (xhr.status === 200) {
+                // Ustvari URL za objekt v pomnilniku
+                const blobUrl = window.URL.createObjectURL(xhr.response);
+    
+                // Ustvari skriti <a> element za prenos
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = 'receipt'; // Ime datoteke za prenos
+                link.target = '_blank';
+    
+                // Dodaj <a> element na stran in sproži klik nanj
+                document.body.appendChild(link);
+                link.click();
+    
+                // Odstrani <a> element iz strani
+                document.body.removeChild(link);
+    
+                // Sprosti URL za objekt v pomnilniku
+                window.URL.revokeObjectURL(blobUrl);
+            } else {
+                console.error('Error downloading receipt. Status:', xhr.status);
+            }
+        };
+    
+        // Ko pride do napake med prenosom
+        xhr.onerror = function() {
+            console.error('Error downloading receipt. Network error.');
+        };
+    
+        // Pošlji zahtevek za prenos slike
+        xhr.send();
+    };
 
     if (!product) {
         console.log('Product not found');
@@ -92,7 +144,7 @@ const ProductDetails = () => {
             <div>
                 
             <button onClick={() => navigate(`/edit/${id}`)} className={styles.EditButton}>Uredi izdelek</button>
-                <button onClick={null} className={styles.DownloadButton}>Prenesi račun</button>
+            <button onClick={downloadReceipt} className={styles.DownloadButton}>Prenesi račun</button>
 
             </div>
             <div>
