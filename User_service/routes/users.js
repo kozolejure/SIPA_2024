@@ -350,32 +350,65 @@ router.put('/users/:id', async (req, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Item'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               manufacturer:
+ *                 type: string
+ *               warrantyExpiryDate:
+ *                 type: string
+ *                 format: date
+ *               productImage:
+ *                 type: string
+ *                 format: binary
+ *               receiptImage:
+ *                 type: string
+ *                 format: binary
+ *               notes:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Item updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Item'
  *       404:
  *         description: Item not found
  *       500:
  *         description: Internal server error
  */
-router.put('/users/:id/items/:itemId', upload.array('images', 2), async (req, res) => {
+router.put('/users/:id/items/:itemId', upload.fields([
+  { name: 'productImage', maxCount: 1 },
+  { name: 'receiptImage', maxCount: 1 }
+]), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
     const item = user.items.id(req.params.itemId);
     if (!item) {
       return res.status(404).send('Item not found');
     }
 
-    // Update item fields
+    // Posodobitev polj predmeta
     item.name = req.body.name || item.name;
     item.manufacturer = req.body.manufacturer || item.manufacturer;
     item.warrantyExpiryDate = req.body.warrantyExpiryDate || item.warrantyExpiryDate;
-    item.productImage = req.body.productImage
-    item.receiptImage = req.body.receiptImage
     item.notes = req.body.notes || item.notes;
+
+    if (req.files['productImage']) {
+      item.productImage = req.files['productImage'][0].path;
+    }
+
+    if (req.files['receiptImage']) {
+      item.receiptImage = req.files['receiptImage'][0].path;
+    }
 
     await user.save();
     res.status(200).send(item);

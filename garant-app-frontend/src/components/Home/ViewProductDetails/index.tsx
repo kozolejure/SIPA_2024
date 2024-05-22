@@ -5,7 +5,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "../../../context/AuthContext"; // Uvozite useAuth
 import stylesNac from '../styles.module.css';
 import styles from './styles.module.css';
-
 interface Product {
     _id: string;
     name: string;
@@ -92,7 +91,7 @@ const ProductDetails = () => {
             <p className= {styles.productDetails}><strong>Notes:</strong> {product.Notes}</p>
             <div>
                 
-                <button onClick={null} className={styles.EditButton}>Uredi izdelek</button>
+            <button onClick={() => navigate(`/edit/${id}`)} className={styles.EditButton}>Uredi izdelek</button>
                 <button onClick={null} className={styles.DownloadButton}>Prenesi račun</button>
 
             </div>
