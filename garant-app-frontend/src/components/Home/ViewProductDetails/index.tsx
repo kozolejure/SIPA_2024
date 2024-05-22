@@ -43,6 +43,35 @@ const ProductDetails = () => {
         fetchProductFromLocalStorage();
     }, [id,navigate,user]);
 
+
+    const deleteProduct = async () => {
+        try {
+            const response = await fetch(`http://localhost:3002/users/${user.id}/items/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user.token}`,
+                },
+            });
+            console.log('Delete product response:', response);
+            
+                // Remove the deleted product from local storage
+                try {
+                    const products = JSON.parse(localStorage.getItem('products') || '[]');
+                    const updatedProducts = products.filter((p: Product) => p._id !== id);
+                    localStorage.setItem('products', JSON.stringify(updatedProducts));
+                } catch (error) {
+                    console.error('Error updating local storage after deletion:', error);
+                }
+                navigate('/');
+             
+                
+            
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
     if (!product) {
         console.log('Product not found');
         return <div>Loading...</div>;
@@ -66,6 +95,9 @@ const ProductDetails = () => {
                 <button onClick={null} className={styles.EditButton}>Uredi izdelek</button>
                 <button onClick={null} className={styles.DownloadButton}>Prenesi račun</button>
 
+            </div>
+            <div>
+            <button onClick={deleteProduct} className={styles.deleteButton}>Izbriši izdelek</button>
             </div>
         </div>
         </div>
