@@ -19,6 +19,7 @@ const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState<Product | null>(null);
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     useEffect(() => {
         if (!user) {
@@ -39,8 +40,8 @@ const ProductDetails = () => {
                 if (response.ok) {
                     const productData = await response.json();
                     setProduct(productData);
+                    fetchImage(productData.productImage);
                 } else {
-                    // If server response is not ok, fallback to local storage
                     throw new Error('Server response not ok');
                 }
             } catch (error) {
@@ -53,9 +54,35 @@ const ProductDetails = () => {
             try {
                 const products = JSON.parse(localStorage.getItem('products') ?? '[]');
                 const foundProduct = products.find((p: Product) => p._id === id);
-                setProduct(foundProduct);
+                if (foundProduct) {
+                    setProduct(foundProduct);
+                    const cachedImage = localStorage.getItem(foundProduct._id);
+                    if (cachedImage) {
+                        setImageSrc(cachedImage);
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching product details from local storage:', error);
+            }
+        };
+
+        const fetchImage = async (imagePath: string) => {
+            try {
+                const response = await fetch(`http://localhost:3002/${imagePath}`);
+                const blob = await response.blob();
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64data = reader.result as string;
+                    localStorage.setItem(id, base64data);
+                    setImageSrc(base64data);
+                };
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                console.error('Error fetching image from server, falling back to local storage:', error);
+                const cachedImage = localStorage.getItem(id);
+                if (cachedImage) {
+                    setImageSrc(cachedImage);
+                }
             }
         };
 
@@ -81,24 +108,26 @@ const ProductDetails = () => {
                 throw new Error('Server response not ok');
             }
         } catch (error) {
-            console.error('Error deleting product:', error);
+            console.error('Error deleting product from server, falling back to local storage:', error);
+            const products = JSON.parse(localStorage.getItem('products') || '[]');
+            const updatedProducts = products.filter((p: Product) => p._id !== id);
+            localStorage.setItem('products', JSON.stringify(updatedProducts));
+            navigate('/');
         }
     };
 
-    const downloadReceipt = () => {
+    const downloadReceipt = async () => {
         if (!product?.receiptImage) {
             console.error('Receipt image not found for product:', product);
             return;
         }
 
         const receiptUrl = `http://localhost:3002/${product.receiptImage}`;
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', receiptUrl, true);
-        xhr.responseType = 'blob';
-
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                const blobUrl = window.URL.createObjectURL(xhr.response);
+        try {
+            const response = await fetch(receiptUrl);
+            if (response.ok) {
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = blobUrl;
                 link.download = 'receipt';
@@ -108,15 +137,21 @@ const ProductDetails = () => {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(blobUrl);
             } else {
-                console.error('Error downloading receipt. Status:', xhr.status);
+                throw new Error('Server response not ok');
             }
-        };
-
-        xhr.onerror = function() {
-            console.error('Error downloading receipt. Network error.');
-        };
-
-        xhr.send();
+        } catch (error) {
+            console.error('Error downloading receipt from server, falling back to local storage:', error);
+            const cachedReceipt = localStorage.getItem(`${id}-receipt`);
+            if (cachedReceipt) {
+                const link = document.createElement('a');
+                link.href = cachedReceipt;
+                link.download = 'receipt';
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
     };
 
     if (!product) {
@@ -132,7 +167,7 @@ const ProductDetails = () => {
             </div>
             <div className={styles.productDetails}>
                 <h2 className={styles.title}>{product.name}</h2>
-                <img src={`http://localhost:3002/${product.productImage}`} alt={product.name} className={styles.image} />
+                {imageSrc && <img src={imageSrc} alt={product.name} className={styles.image} />}
                 <p className={styles.productDetails}><strong>Manufacturer:</strong> {product.Manufacturer}</p>
                 <p className={styles.productDetails}><strong>Warranty Expiry Date:</strong> {new Date(product.warrantyExpiryDate).toLocaleDateString()}</p>
                 <p className={styles.productDetails}><strong>Notes:</strong> {product.Notes}</p>

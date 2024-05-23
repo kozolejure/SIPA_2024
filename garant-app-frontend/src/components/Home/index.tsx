@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // Uvozite useAuth
+import { useAuth } from '../../context/AuthContext';
 import ProductCard from './ProductCard/index.tsx';
 import styles from './styles.module.css';
 
-
 function HomeScreen() {
-    const { user, logout } = useAuth();  // Uporabite kontekst za uporabnika in odjavo
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
 
@@ -27,6 +26,12 @@ function HomeScreen() {
                 console.log("fetched data", response.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                const cachedProducts = localStorage.getItem('products');
+                if (cachedProducts) {
+                    setProducts(JSON.parse(cachedProducts));
+                } else {
+                    console.log('No cached products found in local storage.');
+                }
             }
         };
 
@@ -47,7 +52,7 @@ function HomeScreen() {
             {products.length === 0 && <div className={styles.container}>Ni dodanih izdelkov</div>}
             <div className={styles.container}>
                 {products.map(product => (
-                    <ProductCard key={product._id} product={product}  onViewDetails={handleViewDetails} />
+                    <ProductCard key={product._id} product={product} onViewDetails={handleViewDetails} />
                 ))}
             </div>
         </div>

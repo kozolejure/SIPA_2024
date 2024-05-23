@@ -1,4 +1,3 @@
-// src/components/ProductCard.js
 import React, { useEffect, useState } from 'react';
 import styles from './styles.module.css';
 
@@ -7,7 +6,7 @@ const ProductCard = ({ product, onViewDetails }) => {
 
     useEffect(() => {
         const fetchImage = async () => {
-            if (navigator.onLine) {
+            try {
                 console.log('Fetching image from server');
                 const response = await fetch(`http://localhost:3002/${product.productImage}`);
                 const blob = await response.blob();
@@ -18,11 +17,13 @@ const ProductCard = ({ product, onViewDetails }) => {
                     setImageSrc(base64data);
                 };
                 reader.readAsDataURL(blob);
-            } else {
-                console.log('Fetching image from cache');
+            } catch (error) {
+                console.log('Error fetching image, loading from cache', error);
                 const cachedImage = localStorage.getItem(product._id);
                 if (cachedImage) {
                     setImageSrc(cachedImage);
+                } else {
+                    console.log('No cached image found in local storage.');
                 }
             }
         };
