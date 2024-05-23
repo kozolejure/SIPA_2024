@@ -11,49 +11,25 @@ function HomeScreen() {
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        // if (!user) {
-        //     navigate('/login');
-        //     return;
-        // }
+        if (!user) {
+            navigate('/login');
+            return;
+        }
 
         const fetchData = async () => {
             try {
-                console.log("Fetching data with user id: ", user.id);
+                console.log("fetching data with user id: ", user.id);
                 const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
-                console.log("Response data: ", response.data);
-                if (Array.isArray(response.data)) {
-                    setProducts(response.data);
-                    localStorage.setItem('products', JSON.stringify(response.data));
-                } else {
-                    console.error("Invalid data type received:", response.data);
-                    setProducts([]);
-                }
+                setProducts(response.data);
+                localStorage.setItem('products', JSON.stringify(response.data));
+                console.log("fetched data", response.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
-                const storedProducts = localStorage.getItem('products');
-                try {
-                    const parsedProducts = JSON.parse(storedProducts);
-                    console.log("Parsed products from storage:", parsedProducts);
-                    if (Array.isArray(parsedProducts)) {
-                        setProducts(parsedProducts);
-                    } else {
-                        console.error("Invalid data type in storage:", parsedProducts);
-                        setProducts([]);
-                    }
-                } catch (parseError) {
-                    console.error('Error parsing products from localStorage:', parseError);
-                    setProducts([]);
-                }
             }
         };
 
         fetchData();
     }, [user, navigate]);
-
-    console.log("Current products state:", products);
-    if (!Array.isArray(products)) {
-        console.error("Critical error: products is not an array", products);
-    }
 
 
     const handleViewDetails = (id) => {
