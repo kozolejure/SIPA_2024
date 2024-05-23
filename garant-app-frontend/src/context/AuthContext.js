@@ -29,6 +29,10 @@ export const AuthProvider = ({ children }) => {
                     logout();
                 }
             }
+            else {
+                logout();
+                navigate('/login');
+            }
         };
 
         checkUser();
