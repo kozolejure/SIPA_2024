@@ -21,6 +21,7 @@ function HomeScreen() {
                 console.log("fetching data with user id: ", user.id);
                 const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
                 setProducts(response.data);
+                localStorage.setItem('products', JSON.stringify(response.data));
                 console.log("fetched data", response.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -29,6 +30,11 @@ function HomeScreen() {
 
         fetchData();
     }, [user, navigate]);
+
+
+    const handleViewDetails = (id) => {
+        navigate(`/product-details/${id}`);
+    };
 
     return (
         <div>
@@ -40,7 +46,7 @@ function HomeScreen() {
             {products.length === 0 && <div className={styles.container}>Ni dodanih izdelkov</div>}
             <div className={styles.container}>
                 {products.map(product => (
-                    <ProductCard key={product.id} product={product} onViewDetails={null} />
+                    <ProductCard key={product._id} product={product} onViewDetails={handleViewDetails} />
                 ))}
             </div>
         </div>
