@@ -38,6 +38,20 @@ function HomeScreen() {
         fetchData();
     }, [user, navigate]);
 
+    useEffect(() => {
+        const syncData = async () => {
+            try {
+                console.log("Syncing data...");
+                await axios.post(`http://localhost:3002/users/${user.id}/sync`, products);
+                console.log("Data synced successfully");
+            } catch (error) {
+                console.error('Error syncing data:', error);
+            }
+        };
+
+        syncData();
+    }, [user, products]);
+
     const handleViewDetails = (id) => {
         navigate(`/product-details/${id}`);
     };

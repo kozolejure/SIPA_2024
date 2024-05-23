@@ -417,4 +417,58 @@ router.put('/users/:id/items/:itemId', upload.fields([
   }
 });
 
+
+/**
+ * @swagger
+ * /users/{id}/sync:
+ *   post:
+ *     summary: Sync user data
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Item'
+ *     responses:
+ *       200:
+ *         description: Sync successful
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/users/:id/sync', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const products = req.body;
+
+    // Pridobi uporabnika iz baze
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // Posodobi izdelke glede na prejete podatke
+    user.items = products;
+
+    // Shranjevanje posodobljenega uporabnika v bazo
+    await user.save();
+    res.status(200).send('Sync successful');
+  } catch (err) {
+    console.error('Error syncing data:', err);
+    res.status(500).send('Internal server error');
+  }
+});
+
+
 module.exports = router;
