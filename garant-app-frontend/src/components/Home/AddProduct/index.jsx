@@ -10,20 +10,43 @@ const AddProduct = () => {
     const [manufacturer, setManufacturer] = useState('');
     const [warrantyExpiryDate, setWarrantyExpiryDate] = useState('');
     const [productImage, setProductImage] = useState(null);
+    const [productImageBase64, setProductImageBase64] = useState('');
     const [receiptImage, setReceiptImage] = useState(null);
+    const [receiptImageBase64, setReceiptImageBase64] = useState('');
     const [notes, setNotes] = useState('');
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    useEffect(() => {
-        if (!user) {
-            navigate('/login');
-            return;
+    const convertToBase64 = (file, setBase64) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            setBase64(reader.result);
+        };
+        reader.onerror = (error) => {
+            console.error('Error converting image to Base64:', error);
+        };
+    };
+
+    const handleProductImageChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setProductImage(file);  // Set binary data for online use
+            convertToBase64(file, setProductImageBase64);  // Convert and set Base64 for offline use
         }
-    }, [user, navigate]);
+    };
+
+    const handleReceiptImageChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setReceiptImage(file);  // Set binary data for online use
+            convertToBase64(file, setReceiptImageBase64);  // Convert and set Base64 for offline use
+        }
+    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
         const formData = new FormData();
         formData.append('name', name);
         formData.append('manufacturer', manufacturer);
@@ -45,8 +68,8 @@ const AddProduct = () => {
                     name,
                     manufacturer,
                     warrantyExpiryDate,
-                    productImage,
-                    receiptImage,
+                    productImage: productImageBase64,
+                    receiptImage: receiptImageBase64,
                     notes
                 };
                 const products = JSON.parse(localStorage.getItem('products')) || [];
@@ -94,14 +117,14 @@ const AddProduct = () => {
                 <input
                     id="productImage"
                     type="file"
-                    onChange={e => setProductImage(e.target.files[0])}
+                    onChange={handleProductImageChange}
                 />
 
                 <label htmlFor="receiptImage">Receipt Image:</label>
                 <input
                     id="receiptImage"
                     type="file"
-                    onChange={e => setReceiptImage(e.target.files[0])}
+                    onChange={handleReceiptImageChange}
                 />
 
                 <label htmlFor="notes">Notes:</label>
