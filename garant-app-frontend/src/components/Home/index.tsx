@@ -4,12 +4,57 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ProductCard from './ProductCard/index.tsx';
 import styles from './styles.module.css';
+import useNotification from '../../hooks/useNotification.js';
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function HomeScreen() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [expiringProducts, setExpiringProducts] = useState([]);
+    const [isListening, setIsListening] = useState(false);
+    const [speechResult, setSpeechResult] = useState('');
+    const notify = useNotification();
+
+    const recognition = new SpeechRecognition();
+    recognition.interimResults = true;
+    recognition.lang = 'sl-SI';
+    recognition.onend = () => recognition.start();
+
+    recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+            .map(result => result[0])
+            .map(result => result.transcript)
+            .join('');
+        setSpeechResult(transcript);
+    };
+
+    recognition.onend = () => {
+        setIsListening(false);
+        console.log('Govorno prepoznavanje se je zaključilo', speechResult);
+        // Tukaj lahko dodate logiko za iskanje izdelkov ali dodajanje izdelkov na podlagi speechResult
+        switch (speechResult) {
+            case 'dodaj izdelek':
+                navigate('/add-product');
+                break;
+            case 'odjava':
+                logout();
+                break;
+            default:
+                notify('Nisem prepoznal ukaza', 'info');
+                console.log('Nisem prepoznal ukaza');
+        }
+    };
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+        setIsListening(!isListening);
+    };
 
     const showLocalNotification = (productId, title, body, swRegistration) => {
         console.log("showing local notification, product id: " + productId);
@@ -17,7 +62,8 @@ function HomeScreen() {
             body: body,
             icon: './favicon.ico',
             vibrate: [100, 50, 100],
-            data: { dateOfArrival: Date.now(), primaryKey: '1', productId: productId },
+            data: { dateOfArrival: Date.now(), primaryKey: productId, productId: productId },
+            tag: productId,
             actions: [
                 { action: 'explore', title: 'View details', icon: 'images/checkmark.png' }
             ]
@@ -106,18 +152,26 @@ function HomeScreen() {
         }
     }
 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((swRegistration) => {
-            expiringProducts.map(product => {
-                showLocalNotification(product._id, 'Potek garancije', 'Izdelku ' + product.name + ', bo kmalu potekla garancija', swRegistration);
+    const getNotificationProductExpiry = () => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then((swRegistration) => {
+                expiringProducts.forEach(product => {
+                    showLocalNotification(product._id, 'Potek garancije', 'Izdelku ' + product.name + ', bo kmalu potekla garancija', swRegistration);
+                });
             });
-        });
+        }
     }
+
 
     useEffect(() => {
         fetchData();
         getExpiringProducts();
         checkAndRequestNotificationPermission();
+
+        return () => {
+            recognition.stop();
+            recognition.onend = null;
+        };
     }, [user, navigate]);
 
     if (!Array.isArray(products)) {
@@ -131,8 +185,9 @@ function HomeScreen() {
     return (
         <div>
             <div className={styles.nav}>
-                <label>Home</label>
+                <button onClick={getNotificationProductExpiry}>Obvestilo o poteku</button>
                 <button onClick={() => navigate('/add-product')}>Dodaj izdelek</button>
+                <button onClick={toggleListening}>{isListening ? 'Stop Listening' : 'Start Listening'}</button>
                 <button onClick={logout}>Odjava</button>
             </div>
             {products.length === 0 && <div className={styles.container}>Ni dodanih izdelkov</div>}
