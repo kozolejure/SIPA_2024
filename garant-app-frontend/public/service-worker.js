@@ -42,3 +42,40 @@ self.addEventListener('fetch', function (event) {
             })
     );
 });
+
+self.addEventListener('push', function (event) {
+    const data = event.data.json();  // Assuming your server sends JSON
+    const { title, message } = data;
+
+    const options = {
+        body: message,
+        icon: './logo192.png',
+        badge: './logo192.png'
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+self.addEventListener('push', function (event) {
+    var options = {
+        body: event.data.text(),
+        icon: './favicon.ico',
+        vibrate: [100, 50, 100],
+        data: {
+            dateOfArrival: Date.now(),
+            primaryKey: '2'
+        },
+        actions: [
+            {
+                action: 'close', title: 'Zapri',
+                icon: './favicon.ico'
+            },
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification('Obvestilo', options)
+    );
+});

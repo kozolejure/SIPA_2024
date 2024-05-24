@@ -47,7 +47,30 @@ function HomeScreen() {
             }
         };
 
+        const checkAndRequestNotificationPermission = async () => {
+            // Check if the Notification API is available in the browser
+            if (!('Notification' in window)) {
+                alert("This browser does not support desktop notification");
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === "granted") {
+                    console.log("Notification permission granted.");
+                    // You can now show notifications
+                } else {
+                    console.log("Notification permission denied.");
+                    // Handle the denial of permission, perhaps by disabling notification features
+                }
+            } catch (error) {
+                console.error("Failed to request notification permission:", error);
+            }
+        }
+
+
         fetchData();
+        checkAndRequestNotificationPermission();
     }, [user, navigate]);
 
     if (!Array.isArray(products)) {
