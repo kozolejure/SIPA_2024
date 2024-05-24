@@ -1,4 +1,3 @@
-// src/components/AddProduct.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -51,8 +50,12 @@ const AddProduct = () => {
         formData.append('name', name);
         formData.append('manufacturer', manufacturer);
         formData.append('warrantyExpiryDate', warrantyExpiryDate);
-        formData.append('productImage', productImage);
-        formData.append('receiptImage', receiptImage);
+        if (productImage) {
+            formData.append('productImage', productImage);
+        }
+        if (receiptImage) {
+            formData.append('receiptImage', receiptImage);
+        }
         formData.append('notes', notes);
 
         try {
@@ -79,7 +82,39 @@ const AddProduct = () => {
             }
         } catch (error) {
             console.error('Failed to add product:', error);
+            saveProductToLocal();
         }
+    };
+
+    const saveProductToLocal = () => {
+        const newProduct = {
+            _id: new Date().getTime().toString(),
+            name,
+            manufacturer,
+            warrantyExpiryDate,
+            productImage: productImage ? URL.createObjectURL(productImage) : null,
+            receiptImage: receiptImage ? URL.createObjectURL(receiptImage) : null,
+            notes
+        };
+
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        products.push(newProduct);
+        localStorage.setItem('products', JSON.stringify(products));
+        if (productImage) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                localStorage.setItem(newProduct._id, reader.result);
+            };
+            reader.readAsDataURL(productImage);
+        }
+        if (receiptImage) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                localStorage.setItem(`${newProduct._id}-receipt`, reader.result);
+            };
+            reader.readAsDataURL(receiptImage);
+        }
+        navigate('/');
     };
 
     return (
