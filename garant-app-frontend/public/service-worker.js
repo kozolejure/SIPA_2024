@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-restricted-globals */
 // service-worker.js
 const CACHE_NAME = 'app-cache-v2';
@@ -77,5 +78,32 @@ self.addEventListener('push', function (event) {
 
     event.waitUntil(
         self.registration.showNotification('Obvestilo', options)
+    );
+});
+
+self.addEventListener('notificationclick', function (event) {
+    console.log('On notification click: ', event.notification.tag);
+    event.notification.close();
+
+    event.waitUntil(
+        clients.matchAll({
+            type: "window"
+        }).then(function (clientList) {
+            const url = '/product-details/' + event.notification.data.productId;
+
+            for (let i = 0; i < clientList.length; i++) {
+                const client = clientList[i];
+                if ('focus' in client) {
+                    return client.focus().then(client => {
+                        client.navigate(url);
+                        return;
+                    });
+                }
+            }
+
+            if (clients.openWindow) {
+                return clients.openWindow(url);
+            }
+        })
     );
 });
