@@ -33,12 +33,27 @@ const AddProduct = () => {
         formData.append('notes', notes);
 
         try {
-            await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            navigate('/');
+            if (navigator.onLine) {
+                await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                navigate('/');
+            } else {
+                const productData = {
+                    name,
+                    manufacturer,
+                    warrantyExpiryDate,
+                    productImage,
+                    receiptImage,
+                    notes
+                };
+                const products = JSON.parse(localStorage.getItem('products')) || [];
+                products.push(productData);
+                localStorage.setItem('products', JSON.stringify(products));
+                navigate('/');
+            }
         } catch (error) {
             console.error('Failed to add product:', error);
         }
