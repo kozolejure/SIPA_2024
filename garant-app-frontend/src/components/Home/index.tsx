@@ -18,14 +18,23 @@ function HomeScreen() {
 
         const fetchData = async () => {
             try {
-                console.log("fetching data with user id: ", user.id);
+                console.log("Checking service availability...");
+                await axios.get(`http://localhost:3002/users/${user.id}/items`);
+                console.log("Service available, syncing data...");
+
+                // Sinhronizacija podatkov
+                
+
+                // Pridobivanje podatkov po sinhronizaciji
                 const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
                 setProducts(response.data);
                 localStorage.setItem('products', JSON.stringify(response.data));
-                
-                console.log("fetched data", response.data);
+
+                console.log("Fetched data:", response.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
+
+                // Pridobivanje podatkov iz lokalnega pomnilnika
                 const cachedProducts = localStorage.getItem('products');
                 if (cachedProducts) {
                     setProducts(JSON.parse(cachedProducts));
@@ -35,10 +44,6 @@ function HomeScreen() {
             }
         };
 
-        fetchData();
-    }, [user, navigate]);
-
-    useEffect(() => {
         const syncData = async () => {
             try {
                 console.log("Syncing data...");
@@ -49,13 +54,13 @@ function HomeScreen() {
             }
         };
 
-        syncData();
-    }, [user, products]);
+        fetchData();
+    }, [user, navigate]);
 
     const handleViewDetails = (id) => {
         navigate(`/product-details/${id}`);
     };
-    
+
     return (
         <div>
             <div className={styles.nav}>
