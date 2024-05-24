@@ -14,38 +14,42 @@ function HomeScreen() {
         const fetchData = async () => {
             try {
                 console.log("Fetching data with user id: ", user.id);
-                const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
-                console.log("Response data: ", response.data);
-                if (Array.isArray(response.data)) {
-                    setProducts(response.data);
-                    localStorage.setItem('products', JSON.stringify(response.data));
+
+                if (navigator.onLine) {
+                    const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
+                    console.log("Response data: ", response.data);
+                    if (Array.isArray(response.data)) {
+                        setProducts(response.data);
+                        localStorage.setItem('products', JSON.stringify(response.data));
+                    } else {
+                        console.error("Invalid data type received:", response.data);
+                        setProducts([]);
+                    }
                 } else {
-                    console.error("Invalid data type received:", response.data);
-                    setProducts([]);
+                    console.log("Offline mode detected. Retrieving data from local storage...");
+                    const storedProducts = localStorage.getItem('products');
+                    try {
+                        const parsedProducts = JSON.parse(storedProducts);
+                        console.log("Parsed products from storage:", parsedProducts);
+                        if (Array.isArray(parsedProducts)) {
+                            setProducts(parsedProducts);
+                        } else {
+                            console.error("Invalid data type in storage:", parsedProducts);
+                            setProducts([]);
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing products from localStorage:', parseError);
+                        setProducts([]);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
-                const storedProducts = localStorage.getItem('products');
-                try {
-                    const parsedProducts = JSON.parse(storedProducts);
-                    console.log("Parsed products from storage:", parsedProducts);
-                    if (Array.isArray(parsedProducts)) {
-                        setProducts(parsedProducts);
-                    } else {
-                        console.error("Invalid data type in storage:", parsedProducts);
-                        setProducts([]);
-                    }
-                } catch (parseError) {
-                    console.error('Error parsing products from localStorage:', parseError);
-                    setProducts([]);
-                }
             }
         };
 
         fetchData();
     }, [user, navigate]);
 
-    console.log("Current products state:", products);
     if (!Array.isArray(products)) {
         console.error("Critical error: products is not an array", products);
     }
