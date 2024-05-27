@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import ProductCard from './ProductCard/index.tsx';
 import styles from './styles.module.css';
 import useNotification from '../../hooks/useNotification.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -63,7 +64,6 @@ function HomeScreen() {
             icon: './favicon.ico',
             vibrate: [100, 50, 100],
             data: { dateOfArrival: Date.now(), primaryKey: productId, productId: productId },
-            tag: productId,
             actions: [
                 { action: 'explore', title: 'View details', icon: 'images/checkmark.png' }
             ]
@@ -155,8 +155,10 @@ function HomeScreen() {
     const getNotificationProductExpiry = () => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then((swRegistration) => {
-                expiringProducts.forEach(product => {
-                    showLocalNotification(product._id, 'Potek garancije', 'Izdelku ' + product.name + ', bo kmalu potekla garancija', swRegistration);
+                expiringProducts.forEach((product, index) => {
+                    setTimeout(() => {
+                        showLocalNotification(product._id, 'Potek garancije', 'Izdelku ' + product.name + ', bo kmalu potekla garancija', swRegistration);
+                    }, index * 1000);
                 });
             });
         }
