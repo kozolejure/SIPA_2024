@@ -9,43 +9,20 @@ const AddProduct = () => {
     const [manufacturer, setManufacturer] = useState('');
     const [warrantyExpiryDate, setWarrantyExpiryDate] = useState('');
     const [productImage, setProductImage] = useState(null);
-    const [productImageBase64, setProductImageBase64] = useState('');
     const [receiptImage, setReceiptImage] = useState(null);
-    const [receiptImageBase64, setReceiptImageBase64] = useState('');
     const [notes, setNotes] = useState('');
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const convertToBase64 = (file, setBase64) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            setBase64(reader.result);
-        };
-        reader.onerror = (error) => {
-            console.error('Error converting image to Base64:', error);
-        };
-    };
-
-    const handleProductImageChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setProductImage(file);  // Set binary data for online use
-            convertToBase64(file, setProductImageBase64);  // Convert and set Base64 for offline use
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
         }
-    };
-
-    const handleReceiptImageChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setReceiptImage(file);  // Set binary data for online use
-            convertToBase64(file, setReceiptImageBase64);  // Convert and set Base64 for offline use
-        }
-    };
+    }, [user, navigate]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         const formData = new FormData();
         formData.append('name', name);
         formData.append('manufacturer', manufacturer);
@@ -59,27 +36,12 @@ const AddProduct = () => {
         formData.append('notes', notes);
 
         try {
-            if (navigator.onLine) {
-                await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                navigate('/');
-            } else {
-                const productData = {
-                    name,
-                    manufacturer,
-                    warrantyExpiryDate,
-                    productImage: productImageBase64,
-                    receiptImage: receiptImageBase64,
-                    notes
-                };
-                const products = JSON.parse(localStorage.getItem('products')) || [];
-                products.push(productData);
-                localStorage.setItem('products', JSON.stringify(products));
-                navigate('/');
-            }
+            await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            navigate('/');
         } catch (error) {
             console.error('Failed to add product:', error);
             saveProductToLocal();
@@ -152,14 +114,14 @@ const AddProduct = () => {
                 <input
                     id="productImage"
                     type="file"
-                    onChange={handleProductImageChange}
+                    onChange={e => setProductImage(e.target.files[0])}
                 />
 
                 <label htmlFor="receiptImage">Receipt Image:</label>
                 <input
                     id="receiptImage"
                     type="file"
-                    onChange={handleReceiptImageChange}
+                    onChange={e => setReceiptImage(e.target.files[0])}
                 />
 
                 <label htmlFor="notes">Notes:</label>
