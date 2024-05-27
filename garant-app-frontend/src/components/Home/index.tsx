@@ -33,7 +33,6 @@ function HomeScreen() {
     recognition.onend = () => {
         setIsListening(false);
         console.log('Govorno prepoznavanje se je zaključilo', speechResult);
-        // Tukaj lahko dodate logiko za iskanje izdelkov ali dodajanje izdelkov na podlagi speechResult
         switch (speechResult) {
             case 'dodaj izdelek':
                 navigate('/add-product');
