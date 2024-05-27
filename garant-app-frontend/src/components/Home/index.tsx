@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import ProductCard from './ProductCard/index.tsx';
 import styles from './styles.module.css';
 import useNotification from '../../hooks/useNotification.js';
-import { v4 as uuidv4 } from 'uuid';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
