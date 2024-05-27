@@ -103,6 +103,17 @@ function HomeScreen() {
                 } catch (parseError) {
                     console.error('Error parsing products from localStorage:', parseError);
                     setProducts([]);
+                setProducts(response.data);
+                localStorage.setItem('products', JSON.stringify(response.data));
+                
+                console.log("fetched data", response.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                const cachedProducts = localStorage.getItem('products');
+                if (cachedProducts) {
+                    setProducts(JSON.parse(cachedProducts));
+                } else {
+                    console.log('No cached products found in local storage.');
                 }
             }
         } catch (error) {
@@ -161,12 +172,22 @@ function HomeScreen() {
             });
         }
     }
-
+    
+    const syncData = async () => {
+            try {
+                console.log("Syncing data...");
+                await axios.post(`http://localhost:3002/users/${user.id}/sync`, products);
+                console.log("Data synced successfully");
+            } catch (error) {
+                console.error('Error syncing data:', error);
+            }
+        };
 
     useEffect(() => {
         fetchData();
         getExpiringProducts();
         checkAndRequestNotificationPermission();
+        syncData();
 
         return () => {
             recognition.stop();
@@ -177,7 +198,7 @@ function HomeScreen() {
     if (!Array.isArray(products)) {
         console.error("Critical error: products is not an array", products);
     }
-
+      
     const handleViewDetails = (id) => {
         navigate(`/product-details/${id}`);
     };

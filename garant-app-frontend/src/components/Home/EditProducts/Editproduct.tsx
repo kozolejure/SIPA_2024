@@ -60,6 +60,12 @@ const EditProduct = () => {
         formData.append('notes', notes);
 
         try {
+            if (!navigator.onLine) {
+                saveChangesToLocal(formData);
+                navigate('/');
+                return;
+            }
+
             const products = JSON.parse(localStorage.getItem('products')) || [];
             const updatedProducts = products.map((p) => {
                 if (p._id === id) {
@@ -78,7 +84,29 @@ const EditProduct = () => {
             navigate('/');
         } catch (error) {
             console.error('Failed to update product:', error);
+            navigate('/');
         }
+    };
+
+    const saveChangesToLocal = (formData) => {
+        const updatedProduct = {
+            _id: id,
+            name,
+            manufacturer,
+            warrantyExpiryDate,
+            productImage: productImage ? URL.createObjectURL(productImage) : null,
+            receiptImage: receiptImage ? URL.createObjectURL(receiptImage) : null,
+            notes
+        };
+
+        const products = JSON.parse(localStorage.getItem('products') || '[]');
+        const updatedProducts = products.map((p) => {
+            if (p._id === id) {
+                return updatedProduct;
+            }
+            return p;
+        });
+        localStorage.setItem('products', JSON.stringify(updatedProducts));
     };
 
     return (
