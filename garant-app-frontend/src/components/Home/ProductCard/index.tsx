@@ -5,6 +5,8 @@ const ProductCard = ({ product, onViewDetails }) => {
     const [imageSrc, setImageSrc] = useState(null);
 
     useEffect(() => {
+        if (!product) return; // Preverimo, če je `product` definiran
+
         const fetchImage = async () => {
             try {
                 if (!navigator.onLine) {
@@ -44,6 +46,10 @@ const ProductCard = ({ product, onViewDetails }) => {
 
         fetchImage();
     }, [product]);
+
+    if (!product) {
+        return <div>Loading...</div>; // Prikaz obvestila, če `product` ni definiran
+    }
 
     return (
         <div className={styles.card}>
