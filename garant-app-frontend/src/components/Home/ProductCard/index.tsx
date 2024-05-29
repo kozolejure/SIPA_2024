@@ -40,7 +40,7 @@ const ProductCard = ({ product, onViewDetails }) => {
             <div className={styles.info}>
                 <h3 className={styles.title}>{product.name}</h3>
                 <p className={styles.description}>{product.notes}</p>
-                <p className={styles.date}>Kupljeno: {new Date(product.warrantyExpiryDate).toLocaleDateString()}</p>
+                <p className={styles.date}>Datum garancije do: <b>{new Date(product.warrantyExpiryDate).toLocaleDateString()}</b></p>
                 <button onClick={() => onViewDetails(product._id)} className={styles.detailsButton}>Več podrobnosti</button>
             </div>
         </div>
