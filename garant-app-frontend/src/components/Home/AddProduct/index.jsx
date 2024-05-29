@@ -1,140 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import styles from './styles.module.css';
-import { useAuth } from '../../../context/AuthContext';
 
-const AddProduct = () => {
-    const [name, setName] = useState('');
-    const [manufacturer, setManufacturer] = useState('');
-    const [warrantyExpiryDate, setWarrantyExpiryDate] = useState('');
-    const [productImage, setProductImage] = useState(null);
-    const [receiptImage, setReceiptImage] = useState(null);
-    const [notes, setNotes] = useState('');
-    const navigate = useNavigate();
-    const { user } = useAuth();
+const ProductCard = ({ product, onViewDetails }) => {
+    const [imageSrc, setImageSrc] = useState(null);
 
     useEffect(() => {
-        if (!user) {
-            navigate('/login');
-            return;
-        }
-    }, [user, navigate]);
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('manufacturer', manufacturer);
-        formData.append('warrantyExpiryDate', warrantyExpiryDate);
-        if (productImage) {
-            formData.append('productImage', productImage);
-        }
-        if (receiptImage) {
-            formData.append('receiptImage', receiptImage);
-        }
-        formData.append('notes', notes);
-
-        try {
-            await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
+        const fetchImage = async () => {
+            try {
+                if (!navigator.onLine) {
+                    console.log('Offline mode: Loading image from local storage');
+                    const cachedImage = localStorage.getItem(product._id);
+                    if (cachedImage) {
+                        setImageSrc(cachedImage);
+                    } else {
+                        console.log('No cached image found in local storage.');
+                    }
+                    return;
                 }
-            });
-            navigate('/');
-        } catch (error) {
-            console.error('Failed to add product:', error);
-            saveProductToLocal();
-        }
-    };
 
-    const saveProductToLocal = () => {
-        const newProduct = {
-            _id: new Date().getTime().toString(),
-            name,
-            manufacturer,
-            warrantyExpiryDate,
-            productImage: productImage ? URL.createObjectURL(productImage) : null,
-            receiptImage: receiptImage ? URL.createObjectURL(receiptImage) : null,
-            notes
+                console.log('Online mode: Fetching image from server');
+                const response = await fetch(`http://localhost:3002/${product.productImage}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const blob = await response.blob();
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64data = reader.result;
+                    localStorage.setItem(product._id, base64data);
+                    setImageSrc(base64data);
+                };
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                console.log('Error fetching image, loading from cache', error);
+                const cachedImageFallback = localStorage.getItem(product._id);
+                if (cachedImageFallback) {
+                    setImageSrc(cachedImageFallback);
+                } else {
+                    console.log('No cached image found in local storage.');
+                }
+            }
         };
 
-        const products = JSON.parse(localStorage.getItem('products') || '[]');
-        products.push(newProduct);
-        localStorage.setItem('products', JSON.stringify(products));
-        if (productImage) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                localStorage.setItem(newProduct._id, reader.result);
-            };
-            reader.readAsDataURL(productImage);
-        }
-        if (receiptImage) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                localStorage.setItem(`${newProduct._id}-receipt`, reader.result);
-            };
-            reader.readAsDataURL(receiptImage);
-        }
-        navigate('/');
-    };
+        fetchImage();
+    }, [product]);
 
     return (
-        <div className={styles.formContainer}>
-            <h2>Add a New Product</h2>
-            <form onSubmit={handleSubmit} className={styles.form}>
-                <label htmlFor="name">Name:</label>
-                <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
-                />
-
-                <label htmlFor="manufacturer">Manufacturer:</label>
-                <input
-                    id="manufacturer"
-                    type="text"
-                    value={manufacturer}
-                    onChange={e => setManufacturer(e.target.value)}
-                    required
-                />
-
-                <label htmlFor="warrantyExpiryDate">Warranty Expiry Date:</label>
-                <input
-                    id="warrantyExpiryDate"
-                    type="date"
-                    value={warrantyExpiryDate}
-                    onChange={e => setWarrantyExpiryDate(e.target.value)}
-                    required
-                />
-
-                <label htmlFor="productImage">Product Image:</label>
-                <input
-                    id="productImage"
-                    type="file"
-                    onChange={e => setProductImage(e.target.files[0])}
-                />
-
-                <label htmlFor="receiptImage">Receipt Image:</label>
-                <input
-                    id="receiptImage"
-                    type="file"
-                    onChange={e => setReceiptImage(e.target.files[0])}
-                />
-
-                <label htmlFor="notes">Notes:</label>
-                <textarea
-                    id="notes"
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                />
-
-                <button type="submit" className={styles.submitButton}>Add Product</button>
-            </form>
+        <div className={styles.card}>
+            {imageSrc ? (
+                <img src={imageSrc} alt={product.name} className={styles.image} />
+            ) : (
+                <div className={styles.placeholder}>Loading...</div>
+            )}
+            <div className={styles.info}>
+                <h3 className={styles.title}>{product.name}</h3>
+                <p className={styles.description}>{product.notes}</p>
+                <p className={styles.date}>Kupljeno: {new Date(product.warrantyExpiryDate).toLocaleDateString()}</p>
+                <button onClick={() => onViewDetails(product._id)} className={styles.detailsButton}>Več podrobnosti</button>
+            </div>
         </div>
     );
 };
 
-export default AddProduct;
+export default ProductCard;

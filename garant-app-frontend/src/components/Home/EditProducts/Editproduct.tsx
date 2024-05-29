@@ -9,7 +9,9 @@ const EditProduct = () => {
     const [manufacturer, setManufacturer] = useState('');
     const [warrantyExpiryDate, setWarrantyExpiryDate] = useState('');
     const [productImage, setProductImage] = useState(null);
+    const [productImagePreview, setProductImagePreview] = useState(null);
     const [receiptImage, setReceiptImage] = useState(null);
+    const [receiptImagePreview, setReceiptImagePreview] = useState(null);
     const [notes, setNotes] = useState('');
     const { id } = useParams();
     const navigate = useNavigate();
@@ -29,8 +31,8 @@ const EditProduct = () => {
                 setManufacturer(product.manufacturer);
                 setWarrantyExpiryDate(formatDateForInput(product.warrantyExpiryDate));
                 setNotes(product.notes);
-                setProductImage(product.productImage || null);
-                setReceiptImage(product.receiptImage || null);
+                setProductImagePreview(product.productImage || null);
+                setReceiptImagePreview(product.receiptImage || null);
             }
         } catch (error) {
             console.error('Failed to fetch product from local storage:', error);
@@ -61,25 +63,18 @@ const EditProduct = () => {
 
         try {
             if (!navigator.onLine) {
-                saveChangesToLocal(formData);
+                await saveChangesToLocal();
                 navigate('/');
                 return;
             }
-
-            const products = JSON.parse(localStorage.getItem('products')) || [];
-            const updatedProducts = products.map((p) => {
-                if (p._id === id) {
-                    return { ...p, name, manufacturer, warrantyExpiryDate, notes };
-                }
-                return p;
-            });
-            localStorage.setItem('products', JSON.stringify(updatedProducts));
 
             await axios.put(`http://localhost:3002/users/${user.id}/items/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+
+            await updateLocalStorage();
 
             navigate('/');
         } catch (error) {
@@ -88,14 +83,30 @@ const EditProduct = () => {
         }
     };
 
-    const saveChangesToLocal = (formData) => {
+    const readAsDataURL = (file) => {
+        return new Promise((resolve, reject) => {
+            if (!(file instanceof Blob)) {
+                resolve(file);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const saveChangesToLocal = async () => {
+        const productImageBase64 = productImage ? await readAsDataURL(productImage) : productImagePreview;
+        const receiptImageBase64 = receiptImage ? await readAsDataURL(receiptImage) : receiptImagePreview;
+
         const updatedProduct = {
             _id: id,
             name,
             manufacturer,
             warrantyExpiryDate,
-            productImage: productImage ? URL.createObjectURL(productImage) : null,
-            receiptImage: receiptImage ? URL.createObjectURL(receiptImage) : null,
+            productImage: productImageBase64,
+            receiptImage: receiptImageBase64,
             notes
         };
 
@@ -108,6 +119,64 @@ const EditProduct = () => {
         });
         localStorage.setItem('products', JSON.stringify(updatedProducts));
     };
+
+    const updateLocalStorage = async () => {
+        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const updatedProducts = [];
+        for (const product of products) {
+            if (product._id === id) {
+                const updatedProduct = {
+                    ...product,
+                    name,
+                    manufacturer,
+                    warrantyExpiryDate,
+                    productImage: productImage ? await readAsDataURL(productImage) : product.productImage,
+                    receiptImage: receiptImage ? await readAsDataURL(receiptImage) : product.receiptImage,
+                    notes
+                };
+                updatedProducts.push(updatedProduct);
+            } else {
+                updatedProducts.push(product);
+            }
+        }
+        localStorage.setItem('products', JSON.stringify(updatedProducts));
+    };
+
+    const handleProductImageChange = async (e) => {
+        const file = e.target.files[0];
+        setProductImage(file);
+        setProductImagePreview(await readAsDataURL(file));
+        
+        // Shranjevanje v lokalno shrambo
+        localStorage.setItem(id, await readAsDataURL(file));
+    };
+
+    const handleReceiptImageChange = async (e) => {
+        const file = e.target.files[0];
+        setReceiptImage(file);
+        setReceiptImagePreview(await readAsDataURL(file));
+        
+        // Shranjevanje v lokalno shrambo
+        localStorage.setItem(id + '-receipt', await readAsDataURL(file));
+    };
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const cachedImage = localStorage.getItem(id);
+            if (cachedImage) {
+                setProductImagePreview(cachedImage);
+            }
+            const cachedReceipt = localStorage.getItem(id + '-receipt');
+            if (cachedReceipt) {
+                setReceiptImagePreview(cachedReceipt);
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [id]);
 
     return (
         <div className={styles.formContainer}>
@@ -144,15 +213,21 @@ const EditProduct = () => {
                 <input
                     id="productImage"
                     type="file"
-                    onChange={e => setProductImage(e.target.files[0])}
+                    onChange={handleProductImageChange}
                 />
+                {productImagePreview && (
+                    <img src={productImagePreview} alt="Product Preview" className={styles.imagePreview} />
+                )}
 
                 <label htmlFor="receiptImage">Receipt Image:</label>
                 <input
                     id="receiptImage"
                     type="file"
-                    onChange={e => setReceiptImage(e.target.files[0])}
+                    onChange={handleReceiptImageChange}
                 />
+                {receiptImagePreview && (
+                    <img src={receiptImagePreview} alt="Receipt Preview" className={styles.imagePreview} />
+                )}
 
                 <label htmlFor="notes">Notes:</label>
                 <textarea

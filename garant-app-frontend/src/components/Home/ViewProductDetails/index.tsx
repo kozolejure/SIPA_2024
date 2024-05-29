@@ -27,27 +27,8 @@ const ProductDetails = () => {
             return;
         }
 
-        const fetchProduct = async () => {
-            try {
-                const response = await fetch(`http://localhost:3002/users/${user.id}/items/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${user.token}`,
-                    },
-                });
-
-                if (response.ok) {
-                    const productData = await response.json();
-                    setProduct(productData);
-                    fetchImage(productData.productImage);
-                } else {
-                    throw new Error('Server response not ok');
-                }
-            } catch (error) {
-                console.error('Error fetching product from server, falling back to local storage:', error);
-                fetchProductFromLocalStorage();
-            }
+        const fetchProduct = async () => {          
+                fetchProductFromLocalStorage();          
         };
 
         const fetchProductFromLocalStorage = () => {
@@ -67,6 +48,8 @@ const ProductDetails = () => {
         };
 
         const fetchImage = async (imagePath: string) => {
+
+            
             try {
                 const response = await fetch(`http://localhost:3002/${imagePath}`);
                 const blob = await response.blob();
@@ -123,24 +106,37 @@ const ProductDetails = () => {
         }
 
         const receiptUrl = `http://localhost:3002/${product.receiptImage}`;
-        try {
-            const response = await fetch(receiptUrl);
-            if (response.ok) {
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = 'receipt';
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
-            } else {
-                throw new Error('Server response not ok');
+        if (navigator.onLine) {
+            try {
+                const response = await fetch(receiptUrl);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = 'receipt';
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(blobUrl);
+                } else {
+                    throw new Error('Server response not ok');
+                }
+            } catch (error) {
+                console.error('Error downloading receipt from server:', error);
+                const cachedReceipt = localStorage.getItem(`${id}-receipt`);
+                if (cachedReceipt) {
+                    const link = document.createElement('a');
+                    link.href = cachedReceipt;
+                    link.download = 'receipt';
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
             }
-        } catch (error) {
-            console.error('Error downloading receipt from server, falling back to local storage:', error);
+        } else {
             const cachedReceipt = localStorage.getItem(`${id}-receipt`);
             if (cachedReceipt) {
                 const link = document.createElement('a');

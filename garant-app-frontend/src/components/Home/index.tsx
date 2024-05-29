@@ -17,40 +17,41 @@ function HomeScreen() {
         }
 
         const fetchData = async () => {
-            try {
-                console.log("Checking service availability...");
-                await axios.get(`http://localhost:3002/users/${user.id}/items`);
-                console.log("Service available, syncing data...");
-
-                // Sinhronizacija podatkov
-                
-
-                // Pridobivanje podatkov po sinhronizaciji
-                const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
-                setProducts(response.data);
-                localStorage.setItem('products', JSON.stringify(response.data));
-
-                console.log("Fetched data:", response.data);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-
-                // Pridobivanje podatkov iz lokalnega pomnilnika
-                const cachedProducts = localStorage.getItem('products');
-                if (cachedProducts) {
-                    setProducts(JSON.parse(cachedProducts));
-                } else {
-                    console.log('No cached products found in local storage.');
+            if (navigator.onLine) {
+                try {
+                    // Fetching data from server
+                    const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
+                    setProducts(response.data);
+                    localStorage.setItem('products', JSON.stringify(response.data));
+                    console.log("Fetched data from server:", response.data);
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    loadProductsFromLocal();
                 }
+            } else {
+                loadProductsFromLocal();
             }
         };
 
-        const syncData = async () => {
-            try {
-                console.log("Syncing data...");
-                await axios.post(`http://localhost:3002/users/${user.id}/sync`, products);
-                console.log("Data synced successfully");
-            } catch (error) {
-                console.error('Error syncing data:', error);
+        
+
+        const loadProductsFromLocal = () => {
+            console.log('Loading products from local storage...');
+            const cachedProducts = localStorage.getItem('products');
+            if (cachedProducts) {
+                const products = JSON.parse(cachedProducts);
+                products.forEach(product => {
+                    if (product.productImage && !product.productImage.startsWith('data:image')) {
+                        product.productImage = localStorage.getItem(product._id) || product.productImage;
+                    }
+                    if (product.receiptImage && !product.receiptImage.startsWith('data:image')) {
+                        product.receiptImage = localStorage.getItem(`${product._id}-receipt`) || product.receiptImage;
+                    }
+                });
+                setProducts(products);
+                console.log('Loaded cached products:', products);
+            } else {
+                console.log('No cached products found in local storage.');
             }
         };
 
@@ -65,10 +66,10 @@ function HomeScreen() {
         <div>
             <div className={styles.nav}>
                 <label>Home</label>
-                <button onClick={() => navigate('/add-product')}>Dodaj izdelek</button>
-                <button onClick={logout}>Odjava</button>
+                <button onClick={() => navigate('/add-product')}>Add Product</button>
+                <button onClick={logout}>Logout</button>
             </div>
-            {products.length === 0 && <div className={styles.container}>Ni dodanih izdelkov</div>}
+            {products.length === 0 && <div className={styles.container}>No products added</div>}
             <div className={styles.container}>
                 {products.map(product => (
                     <ProductCard key={product._id} product={product} onViewDetails={handleViewDetails} />
