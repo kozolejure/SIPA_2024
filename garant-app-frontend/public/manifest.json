@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Garant App",
+  "name": "App for checking the warranty of the product",
   "icons": [
     {
       "src": "favicon.ico",
