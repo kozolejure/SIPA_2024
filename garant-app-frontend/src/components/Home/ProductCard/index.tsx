@@ -5,39 +5,24 @@ const ProductCard = ({ product, onViewDetails }) => {
     const [imageSrc, setImageSrc] = useState(null);
 
     useEffect(() => {
-        if (!product) return; // Preverimo, če je `product` definiran
-
         const fetchImage = async () => {
             try {
-                if (!navigator.onLine) {
-                    console.log('Offline mode: Loading image from local storage');
-                    const cachedImage = localStorage.getItem(product._id);
-                    if (cachedImage) {
-                        setImageSrc(cachedImage);
-                    } else {
-                        console.log('No cached image found in local storage.');
-                    }
-                    return;
-                }
-
-                console.log('Online mode: Fetching image from server');
+                console.log('Fetching image from server');
                 const response = await fetch(`http://localhost:3002/${product.productImage}`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                console.log(`http://localhost:3002/${product.productImage}`);
                 const blob = await response.blob();
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    const base64data = reader.result;
+                    const base64data = reader.result as string; // Cast reader.result to string
                     localStorage.setItem(product._id, base64data);
                     setImageSrc(base64data);
                 };
                 reader.readAsDataURL(blob);
             } catch (error) {
                 console.log('Error fetching image, loading from cache', error);
-                const cachedImageFallback = localStorage.getItem(product._id);
-                if (cachedImageFallback) {
-                    setImageSrc(cachedImageFallback);
+                const cachedImage = localStorage.getItem(product._id);
+                if (cachedImage) {
+                    setImageSrc(cachedImage);
                 } else {
                     console.log('No cached image found in local storage.');
                 }
@@ -47,16 +32,10 @@ const ProductCard = ({ product, onViewDetails }) => {
         fetchImage();
     }, [product]);
 
-    if (!product) {
-        return <div>Loading...</div>; // Prikaz obvestila, če `product` ni definiran
-    }
-
     return (
         <div className={styles.card}>
-            {imageSrc ? (
+            {imageSrc && (
                 <img src={imageSrc} alt={product.name} className={styles.image} />
-            ) : (
-                <div className={styles.placeholder}>Loading...</div>
             )}
             <div className={styles.info}>
                 <h3 className={styles.title}>{product.name}</h3>
