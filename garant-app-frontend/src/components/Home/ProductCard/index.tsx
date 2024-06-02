@@ -9,6 +9,7 @@ const ProductCard = ({ product, onViewDetails }) => {
             try {
                 console.log('Fetching image from server');
                 const response = await fetch(`http://localhost:3002/${product.productImage}`);
+                console.log(`http://localhost:3002/${product.productImage}`);
                 const blob = await response.blob();
                 const reader = new FileReader();
                 reader.onloadend = () => {

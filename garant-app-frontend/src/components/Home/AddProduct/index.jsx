@@ -5,6 +5,7 @@ import styles from './styles.module.css';
 import { useAuth } from '../../../context/AuthContext';
 
 const AddProduct = () => {
+    
     const [name, setName] = useState('');
     const [manufacturer, setManufacturer] = useState('');
     const [warrantyExpiryDate, setWarrantyExpiryDate] = useState('');
@@ -83,10 +84,11 @@ const AddProduct = () => {
         } catch (error) {
             console.error('Failed to add product:', error);
             saveProductToLocal();
-        }
+        } 
     };
 
     const saveProductToLocal = () => {
+        console.log('Saving product to local storage');
         const newProduct = {
             _id: new Date().getTime().toString(),
             name,

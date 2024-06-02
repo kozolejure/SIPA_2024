@@ -17,6 +17,9 @@ function HomeScreen() {
     const [speechResult, setSpeechResult] = useState('');
     const notify = useNotification();
 
+   
+
+
     const recognition = new SpeechRecognition();
     recognition.interimResults = true;
     recognition.lang = 'sl-SI';
@@ -29,6 +32,8 @@ function HomeScreen() {
             .join('');
         setSpeechResult(transcript);
     };
+
+    
 
     recognition.onend = () => {
         setIsListening(false);
@@ -74,7 +79,7 @@ function HomeScreen() {
 
     const fetchData = async () => {
         try {
-            console.log("Fetching data with user id: ", user.id);
+            
 
             if (navigator.onLine) {
                 const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
@@ -111,6 +116,7 @@ function HomeScreen() {
     const getExpiringProducts = async () => {
         try {
             if (navigator.onLine) {
+                console.log(user)
                 const response = await axios.get(`http://localhost:3003/users/${user.id}/items/expiring`);
 
                 if (Array.isArray(response.data)) {
@@ -151,6 +157,7 @@ function HomeScreen() {
     }
 
     const getNotificationProductExpiry = () => {
+        console.log("Getting notification for expiring products");
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then((swRegistration) => {
                 expiringProducts.forEach((product, index) => {
@@ -163,6 +170,10 @@ function HomeScreen() {
     }
 
     useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         fetchData();
         getExpiringProducts();
         checkAndRequestNotificationPermission();
