@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import ProductCard from './ProductCard/index.tsx';
 import styles from './styles.module.css';
 import useNotification from '../../hooks/useNotification.js';
+import { getTokens } from '../../utils/tokensIndexedDB';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -79,10 +80,15 @@ function HomeScreen() {
 
     const fetchData = async () => {
         try {
-            
+            const tokens = await getTokens();
 
             if (navigator.onLine) {
-                const response = await axios.get(`http://localhost:3002/users/${user.id}/items`);
+                const response = await axios.get(`http://localhost:3002/users/${user.id}/items`,{
+
+                headers: {
+                    Authorization: `Bearer ${tokens.jwtToken}`  // Set the authorization header
+                }
+                });
                 console.log("Response data: ", response.data);
                 if (Array.isArray(response.data)) {
                     setProducts(response.data);

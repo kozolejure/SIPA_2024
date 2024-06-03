@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { useAuth } from '../../../context/AuthContext';
 import axios from 'axios';
+import { getTokens } from '../../../utils/tokensIndexedDB';
 
 const EditProduct = () => {
     const [name, setName] = useState('');
@@ -67,10 +68,13 @@ const EditProduct = () => {
                 navigate('/');
                 return;
             }
+            
+            const tokens = await getTokens();
 
             await axios.put(`http://localhost:3002/users/${user.id}/items/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${tokens.jwtToken}`,
                 },
             });
 

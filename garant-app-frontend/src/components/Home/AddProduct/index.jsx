@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { useAuth } from '../../../context/AuthContext';
+import { getTokens } from '../../../utils/tokensIndexedDB';
 
 const AddProduct = () => {
     
@@ -61,9 +62,13 @@ const AddProduct = () => {
 
         try {
             if (navigator.onLine) {
+
+                const tokens = await getTokens();
+
                 await axios.post(`http://localhost:3002/users/${user.id}/items`, formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data'
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${tokens.jwtToken}`
                     }
                 });
                 navigate('/');

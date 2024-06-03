@@ -34,7 +34,13 @@ function FirstLogin() {
                 firstName: firstName,
                 lastName: lastName,
                 email: userDecodedJwt.email
+            },{
+                headers: {
+                    Authorization: `Bearer ${tokens.jwtToken}`  // Set the authorization header
+                }
+            
             });
+            console.log("Tukaj je token"+userDecodedJwt.token);
 
             console.log("To je status: " + response.status);
 

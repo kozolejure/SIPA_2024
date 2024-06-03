@@ -1,17 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const User = require('../models/User');
-const multer = require('multer');
-
+const User = require("../models/User");
+const multer = require("multer");
+const authenticateToken = require("./authMiddleware");
 
 // Konfiguracija multer za shranjevanje datotek v mapo "uploads"
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
 const upload = multer({ storage: storage });
@@ -80,7 +80,7 @@ const upload = multer({ storage: storage });
  *       500:
  *         description: Internal server error
  */
-router.post('/users', async (req, res) => {
+router.post("/users", authenticateToken, async (req, res) => {
   try {
     const { _id, firstName, lastName, email } = req.body;
     const user = new User({ _id, firstName, lastName, email, items: [] });
@@ -116,11 +116,11 @@ router.post('/users', async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.get('/users/:id', async (req, res) => {
+router.get("/users/:id", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send('User not found');
+      return res.status(404).send("User not found");
     }
     res.status(200).send(user);
   } catch (err) {
@@ -155,11 +155,11 @@ router.get('/users/:id', async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.get('/users/:id/items', async (req, res) => {
+router.get("/users/:id/items", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send('User not found');
+      return res.status(404).send("User not found");
     }
     res.status(200).send(user.items);
   } catch (err) {
@@ -209,32 +209,41 @@ router.get('/users/:id/items', async (req, res) => {
  *       500:
  *         description: Notranja napaka strežnika
  */
-router.post('/users/:id/items', upload.fields([
-  { name: 'productImage', maxCount: 1 },
-  { name: 'receiptImage', maxCount: 1 }
-]), async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).send('User not found');
+router.post(
+  "/users/:id/items",
+  authenticateToken,
+  upload.fields([
+    { name: "productImage", maxCount: 1 },
+    { name: "receiptImage", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+
+      const item = {
+        name: req.body.name,
+        manufacturer: req.body.manufacturer,
+        warrantyExpiryDate: req.body.warrantyExpiryDate,
+        productImage: req.files["productImage"]
+          ? req.files["productImage"][0].path
+          : null,
+        receiptImage: req.files["receiptImage"]
+          ? req.files["receiptImage"][0].path
+          : null,
+        notes: req.body.notes,
+      };
+
+      user.items.push(item);
+      await user.save();
+      res.status(201).send(user);
+    } catch (err) {
+      res.status(500).send(err);
     }
-
-    const item = {
-      name: req.body.name,
-      manufacturer: req.body.manufacturer,
-      warrantyExpiryDate: req.body.warrantyExpiryDate,
-      productImage: req.files['productImage'] ? req.files['productImage'][0].path : null,
-      receiptImage: req.files['receiptImage'] ? req.files['receiptImage'][0].path : null,
-      notes: req.body.notes
-    };
-
-    user.items.push(item);
-    await user.save();
-    res.status(201).send(user);
-  } catch (err) {
-    res.status(500).send(err);
   }
-});
+);
 
 /**
  * @swagger
@@ -263,30 +272,34 @@ router.post('/users/:id/items', upload.fields([
  *       500:
  *         description: Internal server error
  */
-router.delete('/users/:id/items/:itemId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      console.error('User not found:', req.params.id);
-      return res.status(404).send('User not found');
-    }
+router.delete(
+  "/users/:id/items/:itemId",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        console.error("User not found:", req.params.id);
+        return res.status(404).send("User not found");
+      }
 
-    const item = user.items.id(req.params.itemId);
-    if (!item) {
-      console.error('Item not found:', req.params.itemId);
-      return res.status(404).send('Item not found');
-    }
+      const item = user.items.id(req.params.itemId);
+      if (!item) {
+        console.error("Item not found:", req.params.itemId);
+        return res.status(404).send("Item not found");
+      }
 
-    user.items.pull(req.params.itemId);
-    await user.save();
-    res.status(200).send({ message: 'Item deleted successfully', user });
-  } catch (err) {
-    console.error('Error deleting item:', err);
-    res.status(500).send({ message: 'Internal server error', error: err.message });
+      user.items.pull(req.params.itemId);
+      await user.save();
+      res.status(200).send({ message: "Item deleted successfully", user });
+    } catch (err) {
+      console.error("Error deleting item:", err);
+      res
+        .status(500)
+        .send({ message: "Internal server error", error: err.message });
+    }
   }
-});
-
-
+);
 
 /**
  * @swagger
@@ -315,18 +328,19 @@ router.delete('/users/:id/items/:itemId', async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.put('/users/:id', async (req, res) => {
+router.put("/users/:id", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!user) {
-      return res.status(404).send('User not found');
+      return res.status(404).send("User not found");
     }
     res.status(200).send(user);
   } catch (err) {
     res.status(500).send(err);
   }
 });
-
 
 /**
  * @swagger
@@ -381,42 +395,47 @@ router.put('/users/:id', async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.put('/users/:id/items/:itemId', upload.fields([
-  { name: 'productImage', maxCount: 1 },
-  { name: 'receiptImage', maxCount: 1 }
-]), async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).send('User not found');
+router.put(
+  "/users/:id/items/:itemId",
+  authenticateToken,
+  upload.fields([
+    { name: "productImage", maxCount: 1 },
+    { name: "receiptImage", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+
+      const item = user.items.id(req.params.itemId);
+      if (!item) {
+        return res.status(404).send("Item not found");
+      }
+
+      // Posodobitev polj predmeta
+      item.name = req.body.name || item.name;
+      item.manufacturer = req.body.manufacturer || item.manufacturer;
+      item.warrantyExpiryDate =
+        req.body.warrantyExpiryDate || item.warrantyExpiryDate;
+      item.notes = req.body.notes || item.notes;
+
+      if (req.files["productImage"]) {
+        item.productImage = req.files["productImage"][0].path;
+      }
+
+      if (req.files["receiptImage"]) {
+        item.receiptImage = req.files["receiptImage"][0].path;
+      }
+
+      await user.save();
+      res.status(200).send(item);
+    } catch (err) {
+      res.status(500).send(err);
     }
-
-    const item = user.items.id(req.params.itemId);
-    if (!item) {
-      return res.status(404).send('Item not found');
-    }
-
-    // Posodobitev polj predmeta
-    item.name = req.body.name || item.name;
-    item.manufacturer = req.body.manufacturer || item.manufacturer;
-    item.warrantyExpiryDate = req.body.warrantyExpiryDate || item.warrantyExpiryDate;
-    item.notes = req.body.notes || item.notes;
-
-    if (req.files['productImage']) {
-      item.productImage = req.files['productImage'][0].path;
-    }
-
-    if (req.files['receiptImage']) {
-      item.receiptImage = req.files['receiptImage'][0].path;
-    }
-
-    await user.save();
-    res.status(200).send(item);
-  } catch (err) {
-    res.status(500).send(err);
   }
-});
-
+);
 
 /**
  * @swagger
@@ -447,7 +466,7 @@ router.put('/users/:id/items/:itemId', upload.fields([
  *       500:
  *         description: Internal server error
  */
-router.post('/users/:id/sync', async (req, res) => {
+router.post("/users/:id/sync", authenticateToken, async (req, res) => {
   try {
     const userId = req.params.id;
     const products = req.body;
@@ -455,7 +474,7 @@ router.post('/users/:id/sync', async (req, res) => {
     // Pridobi uporabnika iz baze
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).send('User not found');
+      return res.status(404).send("User not found");
     }
 
     // Posodobi izdelke glede na prejete podatke
@@ -463,12 +482,11 @@ router.post('/users/:id/sync', async (req, res) => {
 
     // Shranjevanje posodobljenega uporabnika v bazo
     await user.save();
-    res.status(200).send('Sync successful');
+    res.status(200).send("Sync successful");
   } catch (err) {
-    console.error('Error syncing data:', err);
-    res.status(500).send('Internal server error');
+    console.error("Error syncing data:", err);
+    res.status(500).send("Internal server error");
   }
 });
-
 
 module.exports = router;
