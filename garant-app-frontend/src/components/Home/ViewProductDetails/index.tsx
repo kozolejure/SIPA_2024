@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "../../../context/AuthContext"; // Uvozite useAuth
 import stylesNac from '../styles.module.css';
 import styles from './styles.module.css';
+import { getTokens } from "../../../utils/tokensIndexedDB.js";
 
 interface Product {
     _id: string;
@@ -43,11 +44,16 @@ const ProductDetails = () => {
 
     const deleteProduct = async () => {
         try {
+            const tokens = await getTokens();
+
+            console.log('User:', user);
+            console.log(    'Product id:', id)
+            console.log('Tokens:', tokens);
             const response = await fetch(`http://localhost:3002/users/${user.id}/items/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${user.token}`,
+                    Authorization: `Bearer ${tokens.jwtToken}`,
                 },
             });
             console.log('Delete product response:', response);

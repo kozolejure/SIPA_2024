@@ -80,7 +80,7 @@ const upload = multer({ storage: storage });
  *       500:
  *         description: Internal server error
  */
-router.post("/users", authenticateToken, async (req, res) => {
+router.post("/users", async (req, res) => {
   try {
     const { _id, firstName, lastName, email } = req.body;
     const user = new User({ _id, firstName, lastName, email, items: [] });
@@ -116,7 +116,7 @@ router.post("/users", authenticateToken, async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.get("/users/:id", authenticateToken, async (req, res) => {
+router.get("/users/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -211,7 +211,6 @@ router.get("/users/:id/items", async (req, res) => {
  */
 router.post(
   "/users/:id/items",
-  authenticateToken,
   upload.fields([
     { name: "productImage", maxCount: 1 },
     { name: "receiptImage", maxCount: 1 },
@@ -272,34 +271,30 @@ router.post(
  *       500:
  *         description: Internal server error
  */
-router.delete(
-  "/users/:id/items/:itemId",
-  authenticateToken,
-  async (req, res) => {
-    try {
-      const user = await User.findById(req.params.id);
-      if (!user) {
-        console.error("User not found:", req.params.id);
-        return res.status(404).send("User not found");
-      }
-
-      const item = user.items.id(req.params.itemId);
-      if (!item) {
-        console.error("Item not found:", req.params.itemId);
-        return res.status(404).send("Item not found");
-      }
-
-      user.items.pull(req.params.itemId);
-      await user.save();
-      res.status(200).send({ message: "Item deleted successfully", user });
-    } catch (err) {
-      console.error("Error deleting item:", err);
-      res
-        .status(500)
-        .send({ message: "Internal server error", error: err.message });
+router.delete("/users/:id/items/:itemId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      console.error("User not found:", req.params.id);
+      return res.status(404).send("User not found");
     }
+
+    const item = user.items.id(req.params.itemId);
+    if (!item) {
+      console.error("Item not found:", req.params.itemId);
+      return res.status(404).send("Item not found");
+    }
+
+    user.items.pull(req.params.itemId);
+    await user.save();
+    res.status(200).send({ message: "Item deleted successfully", user });
+  } catch (err) {
+    console.error("Error deleting item:", err);
+    res
+      .status(500)
+      .send({ message: "Internal server error", error: err.message });
   }
-);
+});
 
 /**
  * @swagger
@@ -328,7 +323,7 @@ router.delete(
  *       500:
  *         description: Internal server error
  */
-router.put("/users/:id", authenticateToken, async (req, res) => {
+router.put("/users/:id", async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -397,7 +392,7 @@ router.put("/users/:id", authenticateToken, async (req, res) => {
  */
 router.put(
   "/users/:id/items/:itemId",
-  authenticateToken,
+
   upload.fields([
     { name: "productImage", maxCount: 1 },
     { name: "receiptImage", maxCount: 1 },
@@ -466,7 +461,7 @@ router.put(
  *       500:
  *         description: Internal server error
  */
-router.post("/users/:id/sync", authenticateToken, async (req, res) => {
+router.post("/users/:id/sync", async (req, res) => {
   try {
     const userId = req.params.id;
     const products = req.body;

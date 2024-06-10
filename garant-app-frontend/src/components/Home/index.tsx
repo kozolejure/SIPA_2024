@@ -118,6 +118,20 @@ function HomeScreen() {
             console.error('Error fetching data:', error);
         }
     };
+    const syncUserData = async (userData) => {
+        try {
+            const tokens = await getTokens();
+            console.log('User:', user.id);
+            await axios.post(`http://localhost:3002/users/${user.id}/sync`, userData, {
+                headers: {
+                    Authorization: `Bearer ${tokens.jwtToken}`
+                }
+            });
+            console.log("User data synchronized successfully.");
+        } catch (error) {
+            console.error("Failed to synchronize user data:", error);
+        }
+    };
 
     const getExpiringProducts = async () => {
         try {
@@ -183,8 +197,9 @@ function HomeScreen() {
         fetchData();
         getExpiringProducts();
         checkAndRequestNotificationPermission();
-
+        window.addEventListener('online', handleOnlineMode);
         return () => {
+            window.removeEventListener('online', handleOnlineMode);
             recognition.stop();
             recognition.onend = null;
         };
@@ -196,6 +211,21 @@ function HomeScreen() {
 
     const handleViewDetails = (id) => {
         navigate(`/product-details/${id}`);
+    };
+
+    const handleOnlineMode = async () => {
+        // Synchronize local data with server when transitioning from offline to online mode
+        const storedProducts = localStorage.getItem('products');
+        if (storedProducts) {
+            try {
+                const parsedProducts = JSON.parse(storedProducts);
+                await syncUserData(parsedProducts);
+                // Clear local storage after successful synchronization
+                localStorage.removeItem('products');
+            } catch (error) {
+                console.error("Error synchronizing local data with server:", error);
+            }
+        }
     };
 
     return (
