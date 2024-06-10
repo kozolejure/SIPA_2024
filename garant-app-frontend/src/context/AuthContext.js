@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
                 {
                     headers: {
                         // eslint-disable-next-line no-undef
-                        Authorization: `Bearer ${tokens.jwtToken}`,
+                        // Authorization: `Bearer ${user.token}`,
                     },
                 }
             );
